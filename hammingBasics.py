@@ -9,7 +9,7 @@ import scipy.io
 import numpy as np
 BLISS_LOGICAL_DATA_TYPE = np.int32
 #please refer to https://www.ieee802.org/3/df/public/22_10/22_1005/bliss_3df_01_220929.pdf
-INDEX_TO_NUMBER = np.array([ 1, 2, 4, 8, 16, 32, 64, 128]).transpose()
+INDEX_TO_NUMBER = np.array([ 0, 1, 2, 4, 8, 16, 32, 64]).transpose()
 projectDir = 'c:/Users/Megatron/802.3/'
 matrices = scipy.io.loadmat(projectDir + 'bliss_3df_01_220929.mat')
 p = matrices['p']
@@ -36,7 +36,6 @@ else:
 
 #Observation - to get a coded message, multiply a message on the left by G on the right: codedMessage = message.dot(G)
 
-
 def bliss_3df_01_220929_syndrom_decoder(slicedReceivedMessage, H):
 
     #S = H.dot(slicedReceivedMessage) %2
@@ -51,7 +50,7 @@ def bliss_3df_01_220929_syndrom_decoder(slicedReceivedMessage, H):
     index[5] = (1 - S[0]) * S[1] * S[2] + S[5] %2
     index[6] = S[0] * S[1] * (1 - S[2]) + S[6] %2
     
-    integerIndex = index.dot(INDEX_TO_NUMBER) - 1
+    integerIndex = index.dot(INDEX_TO_NUMBER)
     
     correctionVector = np.zeros(slicedReceivedMessage.shape[0], dtype = BLISS_LOGICAL_DATA_TYPE)
     correctionVector[integerIndex] = 1
@@ -64,6 +63,9 @@ def bliss_3df_01_220929_syndrom_decoder(slicedReceivedMessage, H):
     
     return correctedMessage, correctionVector, decoderFailure
 
+def simpleHammingDecoder(slicedReceivedMessage, H):
+    syndrome = slicedReceivedMessage.dot(H.transpose())
+    
 def test_isSingleErrorCorrecting(H):
     zro = np.zeros(H.shape[1])
     syndromeList = []
@@ -75,7 +77,7 @@ def test_isSingleErrorCorrecting(H):
     #assert (len(np.unique(syndromeList, axis = 0)) == H.shape[1])
     return syndromeList
 
-def test_hardDecoder():
+def test_hardDecoder(decoderFunction = bliss_3df_01_220929_syndrom_decoder):
     message = np.random.randint(0,2,120)
     codedMessage = message.dot(G) %2
 
@@ -88,13 +90,13 @@ def test_hardDecoder():
     else:
         print('InValid vector. Decoding needed.')
     
-    for i in range(10):#len(codedMessage)):
+    for i in range(len(codedMessage)):
         print(i)
         codedMessage[i] = 1 - codedMessage[i]
-        cm,cv, df = bliss_3df_01_220929_syndrom_decoder(codedMessage, h)
-        print(cv)
-        print(np.sum(cv)==1)
-        print(df)
-        #assert( (cv[i] == 1) and (np.sum(cv) == 1) and (df == False))
+        cm,cv, df = decoderFunction(codedMessage, h)
+        if ( (cv[i] == 1) and (np.sum(cv) == 1) and (df == False)):
+            print('OK for a single error at index ' + str(i))
+        else:
+            print('Single error at index ' + str(i) + 'issue.')
     
     return 'OK'
