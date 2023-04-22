@@ -6,9 +6,9 @@ Created on Mon Mar 27 13:05:28 2023
 """
 import os
 import numpy as np
-from numba import jit, int32, float32, jitclass, types, typed, boolean, float64, int64
+#from numba import jit, int32, float32, types, typed, boolean, float64, int64
 #import math
-import wifiMatrices
+
 
 projectDir = os.environ.get('8023')
 if projectDir == None:
@@ -20,7 +20,7 @@ import sys
 sys.path.insert(1, projectDir)
 #import io
 
-@jit()
+#@jit()
 def addAWGN(vector, length, SNRdb, prng):
     ## The input SNR is in db so first convert:
     SNR = 10 ** (SNRdb/10)
