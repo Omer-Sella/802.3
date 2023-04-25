@@ -63,18 +63,41 @@ def bliss_3df_01_220929_syndrom_decoder(slicedReceivedMessage, H):
     
     return correctedMessage, correctionVector, decoderFailure
 
-def simpleHammingDecoder(slicedReceivedMessage, H):
+def simpleHammingDecoder(slicedReceivedMessage, H, lookUpTable = None, binaryToInt = INDEX_TO_NUMBER):
     syndrome = slicedReceivedMessage.dot(H.transpose())
+    correctionVector = np.zeros(slicedReceivedMessage.shape[0], dtype = BLISS_LOGICAL_DATA_TYPE)
+    index = np.inf
+    if np.all(syndrome == 0):
+        decoderFailure = False
+    else:
+        decoderFailure = False
+        if lookUpTable is not None:
+            numericalSyndrome = syndrome.dot(binaryToInt)
+            index = lookUpTable[numericalSyndrome]
+        else:
+            for i in range(H.shape[1]):
+                if np.all(H[:,i] == syndrome):
+                    index = i
+                    print('index found')
+                    print(index)
+                    break
+        if index == np.inf:
+            decoderFailure = True
+        else:
+            correctionVector[index] = 1
+    
+    correctedMessage = slicedReceivedMessage + correctionVector %2
+    return  correctedMessage, correctionVector, decoderFailure
     
 def test_isSingleErrorCorrecting(H):
-    zro = np.zeros(H.shape[1])
+    oneHot = np.zeros(H.shape[1])
     syndromeList = []
     for i in range(H.shape[1]):
-        oneHot = zro
         oneHot[i] = 1
         syndromes = h.dot(oneHot) %2
         syndromeList.append(syndromes)
-    #assert (len(np.unique(syndromeList, axis = 0)) == H.shape[1])
+        oneHot[i] = 0
+    assert (len(np.unique(syndromeList, axis = 0)) == H.shape[1])
     return syndromeList
 
 def test_hardDecoder(decoderFunction = bliss_3df_01_220929_syndrom_decoder):
