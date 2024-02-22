@@ -37,16 +37,17 @@ MSB_AMPLITUDE = 1.0
 
 
 #@jit(nopython = True)
-def slicer(vector, length):
+def slicer(vector):
     ## Omer Sella: slicer puts a threshold, everything above 0 is translated to 1,  otherwise 0 (including equality). Do not confuse with the reserved function name slice !
+    length = vector.shape[0]
     slicedVector = np.ones(length, dtype = IEEE_8023_INT_DATA_TYPE)
     slicedVector[np.where(vector <= 0)] = 0
     return slicedVector
 
 
 #@jit(nopython = True)
-def modulatePAM2(vector, length):
-    modulatedVector = np.ones(length, dtype = IEEE_8023_DECIMAL_DATA_TYPE)
+def modulatePAM2(vector):
+    modulatedVector = np.ones(vector.shape[0], dtype = IEEE_8023_DECIMAL_DATA_TYPE)
     modulatedVector[np.where(vector == 0)] = -1
     return modulatedVector
 
@@ -61,7 +62,7 @@ def modulatePAM4(vector, greyCoded = True):
         #01 --> -1/3
         #10 --> 1/3 
         #11 --> 1
-        modulatedVector = np.zeros(vector.shape[0] / 2, dtype = IEEE_8023_DECIMAL_DATA_TYPE)
+        modulatedVector = np.zeros(vector.shape[0] // 2, dtype = IEEE_8023_DECIMAL_DATA_TYPE)
         modulatedVector[np.where(newVector == 0)] = -1
         modulatedVector[np.where(newVector == 1)] = -1/3
         modulatedVector[np.where(newVector == 2)] = 1/3
