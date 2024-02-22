@@ -21,7 +21,7 @@ sys.path.insert(1, projectDir)
 #import io
 
 #@jit()
-def addAWGN(vector, length, SNRdb, prng):
+def additiveWhiteGaussianNoise(vector, length, SNRdb, prng):
     ## The input SNR is in db so first convert:
     SNR = 10 ** (SNRdb/10)
     ## Now use the definition: SNR = signal^2 / sigma^2
@@ -31,3 +31,4 @@ def addAWGN(vector, length, SNRdb, prng):
     sigmaActual = np.sqrt((np.sum(noise ** 2)) / length)
     noisyVector = vector + noise
     return noisyVector, sigma, sigmaActual
+

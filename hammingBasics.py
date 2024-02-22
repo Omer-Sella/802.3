@@ -10,7 +10,7 @@ import numpy as np
 BLISS_LOGICAL_DATA_TYPE = np.int32
 #please refer to https://www.ieee802.org/3/df/public/22_10/22_1005/bliss_3df_01_220929.pdf
 INDEX_TO_NUMBER = np.array([ 0, 1, 2, 4, 8, 16, 32, 64]).transpose()
-projectDir = 'c:/Users/Megatron/802.3/'
+projectDir = 'd:/802.3/'
 matrices = scipy.io.loadmat(projectDir + 'bliss_3df_01_220929.mat')
 p = matrices['p']
 h = matrices['h']
@@ -67,10 +67,8 @@ def simpleHammingDecoder(slicedReceivedMessage, H, lookUpTable = None, binaryToI
     syndrome = slicedReceivedMessage.dot(H.transpose())
     correctionVector = np.zeros(slicedReceivedMessage.shape[0], dtype = BLISS_LOGICAL_DATA_TYPE)
     index = np.inf
-    if np.all(syndrome == 0):
-        decoderFailure = False
-    else:
-        decoderFailure = False
+    decoderFailure = False
+    if not np.all(syndrome == 0):
         if lookUpTable is not None:
             numericalSyndrome = syndrome.dot(binaryToInt)
             index = lookUpTable[numericalSyndrome]
@@ -123,3 +121,4 @@ def test_hardDecoder(decoderFunction = bliss_3df_01_220929_syndrom_decoder):
             print('Single error at index ' + str(i) + 'issue.')
     
     return 'OK'
+
