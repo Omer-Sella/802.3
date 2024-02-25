@@ -7,7 +7,7 @@ Created on Thu Feb 22 14:37:58 2024
 import matplotlib.pyplot as plt
 import numpy as np
 
-def plotSNRvsBER(SNRaxis, BERdata, fileName = None, inputLabel = 'baselineCode', figureNumber = 1, figureName = '', figureHandle = None):
+def plotSNRvsBER(SNRaxis, BERdata, fileName = None, inputLabel = 'baselineCode', figureNumber = 1, figureName = ''):
     snrBaseline = np.array([ 2. ,  2.5,  3. ,  3.5,  4. ,  4.5,  5. ,  5.5,  6. ,  6.5,  7. ,
          7.5,  8. ,  8.5,  9. ,  9.5, 10. ])
     berPam2 = np.array([3.75061284e-02, 2.96552876e-02, 2.28784076e-02, 1.71725417e-02,
@@ -17,21 +17,21 @@ def plotSNRvsBER(SNRaxis, BERdata, fileName = None, inputLabel = 'baselineCode',
         3.87210822e-06])
     #timeStamp = str(time.time())
     #fileName = "./" + timeStamp + fileName
-    if figureHandle == None:
-        fig, ax = plt.subplots()
-        #plt.semilogy(snrBaseline, berPam2, '--b', linewidth = 2, label = 'Uncoded PAM 2')
-        fig.plot(snrBaseline, berPam2, '--b', linewidth = 2, label = 'Uncoded PAM 2')
-        fig.ylabel('Output Bit Error Ratio (BER)',fontsize=16)
-        fig.xlabel('Signal to noise ratio (SNR)',fontsize=16)
-        fig.title(figureName)    
-        fig.tick_params(axis='both',  labelsize=16)
-        #fig.set_size_inches(6.25, 6)
-        fig.grid(True, which="both")
-        #fig.tight_layout()
-    
+
+    fig, ax = plt.subplots()
+    ax.semilogy(snrBaseline, berPam2, '--b', linewidth = 2, label = 'Uncoded PAM 2')
+    #ax.plot(snrBaseline, berPam2, '--b', linewidth = 2, label = 'Uncoded PAM 2')
+    ax.set_ylabel('Output Bit Error Ratio (BER)',fontsize=16)
+    ax.set_xlabel('Signal to noise ratio (SNR)',fontsize=16)
+    ax.set_title(figureName)    
+    ax.tick_params(axis='both',  labelsize=16)
+    #fig.set_size_inches(6.25, 6)
+    ax.grid(True, which="both")
+    #fig.tight_layout()
+
     
     #plt.semilogy(SNRaxis, BERdata, '^', linewidth = 3, label=inputLabel)
-    fig.plot(SNRaxis, BERdata, '^', linewidth = 3, label=inputLabel)
+    ax.semilogy(SNRaxis, BERdata, '^', linewidth = 3, label=inputLabel)
        
     #plt.semilogy(snrActualNearEarthAxis, berNearEarthAxis, '*', linewidth = 3, label = 'NearEarthActual')
     #plt.plot(snrActualNearEarthAxis, berNearEarthAxis, '*', linewidth = 3, label = 'NearEarthActual')
@@ -40,5 +40,8 @@ def plotSNRvsBER(SNRaxis, BERdata, fileName = None, inputLabel = 'baselineCode',
     #plt.show()
     if fileName != None:
         plt.savefig(fileName, format='png', dpi=2000)
-    return fig, ax
-    
+    return ax
+
+def addDataToBerSnrFigure(axHandle, snrData, berData, dataLabel  ):
+    axHandle.semilogy(snrData, berData, '^', linewidth = 3, label = dataLabel)
+    return

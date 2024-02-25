@@ -56,13 +56,13 @@ def modulatePAM4(vector, greyCoded = True):
     
     # note that the following line means the stream goes [MSB0,LSB0,MSB1,LSB1 ...]
     newVector = 2 * vector[0::2]  +  vector[1::2]
-    
+    modulatedVector = np.zeros(vector.shape[0] // 2, dtype = IEEE_8023_DECIMAL_DATA_TYPE)
     if not greyCoded:
         #00 --> -1
         #01 --> -1/3
         #10 --> 1/3 
         #11 --> 1
-        modulatedVector = np.zeros(vector.shape[0] // 2, dtype = IEEE_8023_DECIMAL_DATA_TYPE)
+        
         modulatedVector[np.where(newVector == 0)] = -1
         modulatedVector[np.where(newVector == 1)] = -1/3
         modulatedVector[np.where(newVector == 2)] = 1/3
@@ -82,27 +82,33 @@ def pam4Slicer(vector, greyCoded = True):
     pam4Symbols = np.zeros((vector.shape[0]), dtype = IEEE_8023_INT_DATA_TYPE)
     bitsDemodulated = np.zeros((2 * vector.shape[0]), dtype = IEEE_8023_INT_DATA_TYPE)
     if greyCoded == True:
-        pam4Symbols[np.where(vector < -1)]                         = 0
-        pam4Symbols[np.where( ((vector > -(2/3)) and (vector <  0  )) )] = 1
-        pam4Symbols[np.where( ((vector >= 0) and (vector <  2/3  )) )] = 3
-        pam4Symbols[np.where( (vector > 2/3)) ]                    = 2
+        pam4Symbols[np.where(vector <= -(2/3))]                         = 0
+        mask = (vector > -(2/3)) & (vector <=  0  )
+        pam4Symbols[np.where(mask)]                                     = 1
+        mask = (vector > 0) & (vector <=  (2/3))
+        pam4Symbols[np.where(mask)]                                     = 3
+        pam4Symbols[np.where( (vector > (2/3))) ]                       = 2
     else:
-        pam4Symbols[np.where(vector < -1)] =                        0
-        pam4Symbols[np.where( (vector > -(2/3)) and (vector < 0))] = 1
-        pam4Symbols[np.where( ((vector >= 0) and (vector <  2/3  )) )] = 2
-        pam4Symbols[np.where( (vector > 2/3)) ] =                    3
+        pam4Symbols[np.where(vector <= -(2/3))]                         = 0
+        mask = (vector > -(2/3)) & (vector <= 0)
+        pam4Symbols[np.where(mask)]                                     = 1
+        mask = (vector > 0) & (vector <=  2/3  )
+        pam4Symbols[np.where(mask)]                                     = 2
+        pam4Symbols[np.where( (vector > 2/3)) ]                         = 3
     for i in range(vector.shape[0]):
-        symbol = vector[i]
+        symbol = pam4Symbols[i]
+        #if greyCoded:
+            #print(symbol)
         if symbol == 0:
-            bitsDemodulated[2 * i ] = 0
+            bitsDemodulated[2 * i ]    = 0
             bitsDemodulated[2 * i + 1] = 0
         elif symbol == 1:
-            bitsDemodulated[2 * i ] = 0
+            bitsDemodulated[2 * i ]    = 0
             bitsDemodulated[2 * i + 1] = 1
         elif symbol == 2:
-            bitsDemodulated[2 * i ] = 1
+            bitsDemodulated[2 * i ]    = 1
             bitsDemodulated[2 * i + 1] = 0
         else:
-            bitsDemodulated[2 * i ] = 1
+            bitsDemodulated[2 * i ]    = 1
             bitsDemodulated[2 * i + 1] = 1
     return bitsDemodulated, pam4Symbols
