@@ -32,9 +32,11 @@ IEEE_8023_MAX_SEED = 2**31 - 1
 #NUMBA_INT = int64
 #NUMBA_FLOAT = float64
 #NUMBA_BOOL = boolean
-LSB_AMPLITUDE = 1/3
-MSB_AMPLITUDE = 1.0
 
+PAM4_LEVEL_LOW = -1
+PAM4_LEVEL_MID_LOW = -(2/3)
+PAM4_LEVEL_MID_HIGH = 2/3
+PAM4_LEVEL_HIGH = 1
 
 #@jit(nopython = True)
 def slicer(vector):
@@ -63,19 +65,19 @@ def modulatePAM4(vector, greyCoded = True):
         #10 --> 1/3 
         #11 --> 1
         
-        modulatedVector[np.where(newVector == 0)] = -1
-        modulatedVector[np.where(newVector == 1)] = -1/3
-        modulatedVector[np.where(newVector == 2)] = 1/3
-        modulatedVector[np.where(newVector == 3)] = 1
+        modulatedVector[np.where(newVector == 0)] = PAM4_LEVEL_LOW
+        modulatedVector[np.where(newVector == 1)] = PAM4_LEVEL_MID_LOW
+        modulatedVector[np.where(newVector == 2)] = PAM4_LEVEL_MID_HIGH
+        modulatedVector[np.where(newVector == 3)] = PAM4_LEVEL_HIGH
     else:
         #00 --> -1
         #01 --> -1/3
         #10 --> 1 
         #11 --> 1/3
-         modulatedVector[np.where(newVector == 0)] = -1
-         modulatedVector[np.where(newVector == 1)] = -1/3
-         modulatedVector[np.where(newVector == 2)] = 1
-         modulatedVector[np.where(newVector == 3)] = 1/3
+         modulatedVector[np.where(newVector == 0)] = PAM4_LEVEL_LOW
+         modulatedVector[np.where(newVector == 1)] = PAM4_LEVEL_MID_LOW
+         modulatedVector[np.where(newVector == 2)] = PAM4_LEVEL_HIGH
+         modulatedVector[np.where(newVector == 3)] = PAM4_LEVEL_MID_HIGH
     return modulatedVector
 
 def pam4Slicer(vector, greyCoded = True):
