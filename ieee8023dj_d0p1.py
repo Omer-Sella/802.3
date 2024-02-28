@@ -110,7 +110,7 @@ def checkEqual():
     return np.all(cw2 == mxor[1,:].transpose())
 
 def bchEncoder(M, G = None):
-    #M is assumed to be a matrix of size L X 110, where if G is None it is assumed that L = 1
+    #M is assumed to be a matrix of size L X 110 if G is not None, and where if G is None it is assumed that L == 1
     #If G is not none then it is assumed to be a binary generator matrix
     """
      184.4.5 BCH encoder
@@ -148,16 +148,28 @@ def bchEncoder(M, G = None):
         codeword = G.dot(M) % 2
     else:
         gX = np.array([1,0,1,0,0,1,1,1,0,1,0,1, 0,1,0,1]) # g(x) = x16 +x 14 + x11 + x10 + x9 + x7 + x5 + x3 + x+ 1
-        remainder = np.zeros((len(M) + len(gX) - 1), dtype = IEEE_8023_INT_DATA_TYPE)
+        remainder = np.zeros((len(M) + len(gX) - 1), dtype = IEEE_8023_INT_DATA_TYPE) # Padded with 15 zeros
+        print(len(M))
         remainder[0:len(M)] = M
-        for i in range(len(M) - (len(gX) - 1)):
+        print(remainder)
+        for i in range(len(M)):
+            print(i)
             if remainder[i] == 1:
                 #kill ther leading coefficient
-                remainder[i : i + (len(gX) - 1)] = (remainder[i : i + (len(gX) - 1)] + gX) % 2
+                print('killing the leader at coordinate:' + str(i))
+                print((remainder[i : i + (len(gX))] + gX) % 2)
+                remainder[i : i + len(gX)] = (remainder[i : i + (len(gX))] + gX) % 2
         codeword = np.zeros((len(M) + len(gX) - 1), dtype = IEEE_8023_INT_DATA_TYPE)
         codeword[0 : len(M)] = M
-        codeword[len(M) : (len(gX) - 1)] = remainder
+        codeword[len(M) : len(codeword)] = remainder[len(remainder) - len(gX) + 1 : ]
     return codeword
         
+
+def test_bchEncoder():
+    tv0 = np.zeros(110)
+    tv0[109] = 1
+    tv1 = bchEncoder(tv0)
+    assert (np.all(tv1[110:] == np.array([1,0,1,0,0,1,1,1,0,1,0,1, 0,1,0,1])))
+    return 'OK'
                 
 
