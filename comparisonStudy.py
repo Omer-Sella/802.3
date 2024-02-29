@@ -17,7 +17,7 @@ from channelFunctions import *
 from graphics import *
 
 
-def simpleAWGNComparison(dataLength = 500, seed = 7134066, snrAxis = [2,3,4,5,6,7,8,9,10]):
+def simpleAWGNComparison(dataLength = 500, seed = 7134066, snrAxis = [2,3,4,5,6,7,8,9,10,11,12,13,14]):
     localRandom = np.random.RandomState(seed)    
     #Generate random data
     randomData = localRandom.randint(0, 1, size = 2 * dataLength)
