@@ -9,34 +9,22 @@ import numpy as np
 import time
 #from numba import jit, int32, float32, types, typed, boolean, float64, int64
 #import math
-
-
 projectDir = os.environ.get('8023')
 if projectDir == None:
     import pathlib
     projectDir = pathlib.Path(__file__).parent.absolute()
 import sys
+from ieeeConstants import *
+
+
+
 # insert at 1, 0 is the script path (or '' in REPL)
 sys.path.insert(1, projectDir)
 #import io
 
 # LDPC_**_DATA_TYPE stores the data type over which all arithmetic is done.
 # It is a nice way of changing the data type of the entire implementation at one place.
-IEEE_8023_DATA_TYPE = np.int64
-IEEE_8023_INT_DATA_TYPE = np.int64
-IEEE_8023_DECIMAL_DATA_TYPE = np.float64
-IEEE_8023_DATA_TYPE = np.int64
-# Omer Sella: seeds can be integers between 0 and 2**31 - 1
-IEEE_8023_MAX_SEED = 2**31 - 1
 
-#NUMBA_INT = int64
-#NUMBA_FLOAT = float64
-#NUMBA_BOOL = boolean
-
-PAM4_LEVEL_LOW = -1
-PAM4_LEVEL_MID_LOW = -(2/3)
-PAM4_LEVEL_MID_HIGH = 2/3
-PAM4_LEVEL_HIGH = 1
 
 #@jit(nopython = True)
 def slicer(vector):

@@ -28,6 +28,7 @@ h1 = h1.transpose()
 
 sanityCheck = G.dot(h.transpose()) % 2
 
+
 #if (np.all(sanityCheck == 0)):
 #    print('Seems that h is a parity for G.')
 #else:
@@ -63,40 +64,34 @@ def bliss_3df_01_220929_syndrom_decoder(slicedReceivedMessage, H):
     
     return correctedMessage, correctionVector, decoderFailure
 
-
-    
-def test_isSingleErrorCorrecting(H):
-    oneHot = np.zeros(H.shape[1])
-    syndromeList = []
-    for i in range(H.shape[1]):
-        oneHot[i] = 1
-        syndromes = h.dot(oneHot) %2
-        syndromeList.append(syndromes)
-        oneHot[i] = 0
-    assert (len(np.unique(syndromeList, axis = 0)) == H.shape[1])
-    return syndromeList
-
-# def test_hardDecoder(decoderFunction = simpleHammingDecoder):
-#     message = np.random.randint(0,2,120)
-#     codedMessage = message.dot(G) %2
-
-#     #Observation - to check / get syndromes, multiply the parity on the right by a coded message on the left: syndromes = h.dot(codedMessage)
-
-#     syndromes = h1.dot(codedMessage) %2
-
-#     if (np.all(syndromes) == 0):
-#         print('Valid codeword received, no decoding needed.')
-#     else:
-#         print('InValid vector. Decoding needed.')
-    
-#     for i in range(len(codedMessage)):
-#         print(i)
-#         codedMessage[i] = 1 - codedMessage[i]
-#         cm,cv, df = decoderFunction(codedMessage, h)
-#         if ( (cv[i] == 1) and (np.sum(cv) == 1) and (df == False)):
-#             print('OK for a single error at index ' + str(i))
-#         else:
-#             print('Single error at index ' + str(i) + 'issue.')
-    
-#     return 'OK'
-
+def simpleHammingDecoder(H, slicedReceivedMessage):
+    syndrome = np.squeeze(np.asarray(slicedReceivedMessage.dot(H)))
+    correctionVector = np.zeros(slicedReceivedMessage.shape[0], dtype = IEEE_8023_INT_DATA_TYPE)
+    index = 0
+    decoderFailure = False
+    if np.all(syndrome == 0):
+        pass
+    else:
+        found = False
+        while (index < H.shape[0]) and (not found):
+            if np.all(H[index , :] == syndrome):
+                found = True
+            else:
+                index = index + 1
+            
+        if index >= H.shape[0]:
+                decoderFailure = True
+        else:
+                correctionVector[index] = 1
+        
+    correctedMessage = (slicedReceivedMessage + correctionVector) %2
+    return  correctedMessage, correctionVector, decoderFailure
+                
+def test_simpleHammingDecoder():
+    for i in range(68):
+        error = np.zeros(68, dtype = IEEE_8023_INT_DATA_TYPE)
+        error[i] = 1
+        correctedMessage, correctionVector, decoderFailure = simpleHammingDecoder(H1.transpose(), error)
+        assert(np.all(correctedMessage == 0))
+        assert(np.all(error == correctionVector))
+    return 'OK'
