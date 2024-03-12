@@ -10,6 +10,18 @@ IEEE_8023_INT_DATA_TYPE = np.int64
 IEEE_8023_DECIMAL_DATA_TYPE = np.float64
 IEEE_8023_DATA_TYPE = np.int64
 
+# Omer Sella: seeds can be integers between 0 and 2**31 - 1
+IEEE_8023_MAX_SEED = 2**31 - 1
+
+#NUMBA_INT = int64
+#NUMBA_FLOAT = float64
+#NUMBA_BOOL = boolean
+
+PAM4_LEVEL_LOW = -1
+PAM4_LEVEL_MID_LOW = -(1/3)
+PAM4_LEVEL_MID_HIGH = 1/3
+PAM4_LEVEL_HIGH = 1
+
 G = np.matrix([
     [1,0,0,1,0,1,0,0],
      [0,1,0,0,1,0,1,0],
@@ -81,3 +93,25 @@ eye_60 = np.eye(60, dtype = np.int32)
 #This is the generator matrix per https://www.ieee802.org/3/df/public/22_10/22_1005/bliss_3df_01_220929.pdf
 G1 = np.vstack((eye_60, G.transpose()))
 H1 = np.hstack((G.transpose(), eye_8))
+
+import scipy.io
+import sys
+import os
+import numpy as np
+
+projectDir = os.environ.get('8023')
+if projectDir == None:
+     projectDir = "D:/802.3/"
+sys.path.insert(1, projectDir)
+
+workspace = scipy.io.loadmat('./bliss_3df_01_220929.mat')
+
+P = workspace['p']
+
+I_120_120 = np.identity(120)
+G1 = np.vstack((P,I_120_120))
+
+H1 = np.hstack((np.identity(8), P))
+
+# Check H is a parity matrix for G:
+assert(np.all(H1.dot(G1) % 2 ==0))

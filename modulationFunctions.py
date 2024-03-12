@@ -102,3 +102,14 @@ def pam4Slicer(vector, greyCoded = True):
             bitsDemodulated[2 * i ]    = 1
             bitsDemodulated[2 * i + 1] = 1
     return bitsDemodulated, pam4Symbols
+
+def pam4QuatizationsFunction(signal, reference = np.array([(-2/3), 0, (2/3), np.inf]), levels = np.array([PAM4_LEVEL_LOW, PAM4_LEVEL_MID_LOW, PAM4_LEVEL_MID_HIGH, PAM4_LEVEL_HIGH])):
+    quantizedSignal = np.zeros(signal.shape, dtype = IEEE_8023_DECIMAL_DATA_TYPE)
+    bitValue = np.zeros(signal.shape, dtype = IEEE_8023_INT_DATA_TYPE)
+    for i in range(len(signal)): # If this is a problem in runtime parallelize using np.tile of the signal
+        bitValue[i] = np.argmax(reference > signal[i])
+        quantizedSignal[i] = levels[bitValue[i]]
+    squaredError = np.square(signal - quantizedSignal)
+    return quantizedSignal, bitValue, squaredError
+    
+

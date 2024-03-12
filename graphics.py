@@ -6,6 +6,11 @@ Created on Thu Feb 22 14:37:58 2024
 """
 import matplotlib.pyplot as plt
 import numpy as np
+from channelFunctions import *
+from modulationFunctions import *
+
+SAMPLE_SIZE = 1000000
+LOCAL_PRNG = np.random.RandomState(7134066)
 
 def plotSNRvsBER(SNRaxis = None, BERdata = None, fileName = None, inputLabel = 'baselineCode', figureNumber = 1, figureName = ''):
     #snrBaseline = np.array([ 2. ,  2.5,  3. ,  3.5,  4. ,  4.5,  5. ,  5.5,  6. ,  6.5,  7. ,
@@ -115,3 +120,17 @@ def plotSNRvsBER(SNRaxis = None, BERdata = None, fileName = None, inputLabel = '
 def addDataToBerSnrFigure(axHandle, snrData, berData, dataLabel  ):
     axHandle.semilogy(snrData, berData, '^k', linewidth = 3, label = dataLabel)
     return
+
+def test_uncoded():
+    SNRaxis = [ 2. ,  2.5,  3. ,  3.5,  4. ,  4.5,  5. ,  5.5,  6. ,  6.5,  7. ,
+             7.5,  8. ,  8.5,  9. ,  9.5, 10. ]
+    data = LOCAL_PRNG.randint(low = 0, high = 1, size = SAMPLE_SIZE)
+    modulatedData = modulate(data, SAMPLE_SIZE)
+    berData = np.array([])
+    for s in SNRaxis:
+        noisyData, _, _ = addAWGN(modulatedData, SAMPLE_SIZE, s, LOCAL_PRNG)
+        slicedData = slicer(noisyData, SAMPLE_SIZE)
+        ber = np.sum(slicedData != data) / SAMPLE_SIZE
+        berData = np.hstack((berData, ber))
+    plotSNRvBER(SNRaxis, berData)
+    return 'OK'
