@@ -7,14 +7,19 @@ Created on Thu Feb 22 10:39:30 2024
 import os
 import sys
 projectDir = os.environ.get('IEEE8032DJ')
-if projectDir == None:
+#You don't have to define an environment variable, but then you have to give a path to the project here
+if projectDir == None: 
      projectDir = "D:/802.3/"
 sys.path.insert(1, projectDir)
+reedSolomonProjectDir = os.environ.get('REEDSOLOMON')
+sys.path.insert(1, reedSolomonProjectDir)
 import numpy as np
 from ieee8023dj_d0p1 import *
 from modulationFunctions import *
 from channelFunctions import *
 from graphics import *
+import 
+
 
 
 def simpleAWGNComparison(dataLength = 500, seed = 7134066, snrAxis = [2,3,4,5,6,7,8,9,10,11,12,13,14]):
@@ -60,6 +65,8 @@ def simpleAWGNComparison(dataLength = 500, seed = 7134066, snrAxis = [2,3,4,5,6,
         #print(pam4ModulatedGreyCodedNoisySliced)
         nrzModulatedNoisySliced = slicer(nrzModulatedNoisy)
         
+        #Decode using BCH hard decoder
+        nrzModulatedNoisySlicedBCHDecoded = 
         
         #Calculate BER
         berPAM4NoCoding[i] = np.count_nonzero(pam4ModulatedNoGreyCodingNoisySliced != randomData) / (2 * dataLength)
