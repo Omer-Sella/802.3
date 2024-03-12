@@ -10,7 +10,7 @@ import numpy as np
 BLISS_LOGICAL_DATA_TYPE = np.int32
 #please refer to https://www.ieee802.org/3/df/public/22_10/22_1005/bliss_3df_01_220929.pdf
 INDEX_TO_NUMBER = np.array([ 0, 1, 2, 4, 8, 16, 32, 64]).transpose()
-projectDir = 'c:/Users/Megatron/802.3/'
+projectDir = 'd:/802.3/'
 matrices = scipy.io.loadmat(projectDir + 'bliss_3df_01_220929.mat')
 p = matrices['p']
 h = matrices['h']
