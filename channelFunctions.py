@@ -9,7 +9,6 @@ import numpy as np
 #from numba import jit, int32, float32, types, typed, boolean, float64, int64
 #import math
 
-
 projectDir = os.environ.get('8023')
 if projectDir == None:
     import pathlib
@@ -20,14 +19,14 @@ import sys
 sys.path.insert(1, projectDir)
 #import io
 
-#@jit()
-def addAWGN(vector, length, SNRdb, prng):
+
+def additiveWhiteGaussianNoise(vector, length, SNRdb, prng ):
     ## The input SNR is in db so first convert:
     SNR = 10 ** (SNRdb/10)
     ## Now use the definition: SNR = signal^2 / sigma^2
     sigma = np.sqrt(0.5 / SNR)
-    #print(sigma)
     noise = prng.normal(0, sigma, length)
     sigmaActual = np.sqrt((np.sum(noise ** 2)) / length)
     noisyVector = vector + noise
     return noisyVector, sigma, sigmaActual
+
