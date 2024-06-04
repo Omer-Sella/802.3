@@ -7,7 +7,7 @@ Created on Thu Feb  8 09:44:44 2024
 import numpy as np
 from ieeeConstants import *
 def encode_177_5(G, M):
-    # M is assumed to be a (2K) X 120
+    # M is assumed to be a (2K) X 120 data, where 2K is the number of lines (it was just easier to implement this way, consider an implementation that does not require this)
     
     ### From the draft:
     # The encode process is illustrated in Figure 177–5. Starting from the first message bit, each pair of bits that 

@@ -4,6 +4,15 @@ Created on Thu Feb 29 20:26:57 2024
 
 @author: Omer
 """
+
+import scipy.io
+import sys
+import os
+projectDir = os.environ.get('IEEE8023DJ')
+if projectDir == None:
+     projectDir = "c:/users/omer/802.3/"
+sys.path.insert(0, projectDir)
+
 import numpy as np
 IEEE_8023_DATA_TYPE = np.int64
 IEEE_8023_INT_DATA_TYPE = np.int64
@@ -94,17 +103,8 @@ eye_60 = np.eye(60, dtype = np.int32)
 G1 = np.vstack((eye_60, G.transpose()))
 H1 = np.hstack((G.transpose(), eye_8))
 
-import scipy.io
-import sys
-import os
-import numpy as np
-
-projectDir = os.environ.get('8023')
-if projectDir == None:
-     projectDir = "D:/802.3/"
-sys.path.insert(1, projectDir)
-
-workspace = scipy.io.loadmat('./bliss_3df_01_220929.mat')
+pathToMatrix = projectDir + '/bliss_3df_01_220929.mat'
+workspace = scipy.io.loadmat(pathToMatrix)
 
 P = workspace['p']
 
