@@ -9,20 +9,28 @@ import sys
 projectDir = os.environ.get('IEEE8032DJ')
 #You don't have to define an environment variable, but then you have to give a path to the project here
 if projectDir == None: 
-     projectDir = "D:/802.3/"
+     projectDir = "c:/users/omer/802.3/"
 sys.path.insert(1, projectDir)
 reedSolomonProjectDir = os.environ.get('REEDSOLOMON')
+if True: #reedSolomonProjectDir == None: 
+     reedSolomonProjectDir = "c:/users/omer/reedSolomon/reedSolomon/"
 sys.path.insert(1, reedSolomonProjectDir)
 import numpy as np
 from ieee8023dj_d0p1 import *
 from modulationFunctions import *
 from channelFunctions import *
 from graphics import *
-import 
+from bchDecoder import bchDecoder
+from arithmetic import *
 
-
+def myBchDecoderInstance(vectorIn):
+    eD, _ =  generateExponentAndLogTables()
+    correctedVector, correctionVector = bchDecoder( receivedBinaryVecotor = vectorIn, exponentDictionary = eD, numberOfPowers = 16, codewordLengthActual = 126, codewordLengthMaximal = 126)
+    return correctedVector, correctionVector
 
 def simpleAWGNComparison(dataLength = 500, seed = 7134066, snrAxis = [2,3,4,5,6,7,8,9,10,11,12,13,14]):
+   
+    
     localRandom = np.random.RandomState(seed)    
     #Generate random data
     randomData = localRandom.randint(0, 1, size = 2 * dataLength)
@@ -66,7 +74,7 @@ def simpleAWGNComparison(dataLength = 500, seed = 7134066, snrAxis = [2,3,4,5,6,
         nrzModulatedNoisySliced = slicer(nrzModulatedNoisy)
         
         #Decode using BCH hard decoder
-        nrzModulatedNoisySlicedBCHDecoded = 
+        nrzModulatedNoisySlicedBCHDecoded = myBchDecoderInstance(nrzModulatedNoisySliced)
         
         #Calculate BER
         berPAM4NoCoding[i] = np.count_nonzero(pam4ModulatedNoGreyCodingNoisySliced != randomData) / (2 * dataLength)
