@@ -7,9 +7,7 @@ Created on Thu Feb  8 09:44:44 2024
 import numpy as np
 from ieeeConstants import *
 def encode_177_5(G, M):
-    # M is assumed to be a (2K) X 120 data, where 2K is the number of lines (it was just easier to implement this way, consider an implementation that does not require this)
     
-    ### From the draft:
     # The encode process is illustrated in Figure 177–5. Starting from the first message bit, each pair of bits that 
     # will be modulated into a PAM4 symbol are first XORed, resulting 60 bits, m_xor<59:0>, from the 120 bits 
     # of message. A Hamming encoder (68,60) will be used to generate the 8 parity bits based on the 60 bits 
@@ -17,22 +15,16 @@ def encode_177_5(G, M):
     # For k = 0:59
     # m_xor(k) = m(2k) + m(2k+1)
     
-    M_even = M[: , 0 :: 2]
-    M_odd = M[: , 1 :: 2]
-    M_xor = (M_even + M_odd) % 2
+    M_xor = np.array([ (M[2*k] + M[2 * k + 1]) %2 for k in range(60) ]) # Hardcoded - the length of the data message is 120 !
     M_parity = M_xor.dot(G) %2
-    codewords = np.hstack(( M, M_parity))
-    M_xor = np.hstack(( M_xor, M_parity))
-    return codewords, M_xor
+    M_xor = np.expand_dims(M_xor, axis = 0)
+    print(M_parity.shape)
+    print(M_xor.shape)
+    codeword = np.hstack(( M_xor, M_parity))
+    return codeword
 
-def encodeUsingMatrixOnly(G, M):
-    return (G.dot(M) % 2)
 
 
-def checkEqual():
-    cw, mxor = encode_177_5(G, tv1_doubled)
-    cw2 = encodeUsingMatrixOnly(G1, mxor[1,0:60].transpose())
-    return np.all(cw2 == mxor[1,:].transpose())
 
 def bchEncoder(M, G = None):
     #M is assumed to be a matrix of size L X 110 if G is not None, and where if G is None it is assumed that L == 1

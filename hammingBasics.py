@@ -12,6 +12,20 @@ BLISS_LOGICAL_DATA_TYPE = np.int32
 #please refer to https://www.ieee802.org/3/df/public/22_10/22_1005/bliss_3df_01_220929.pdf
 INDEX_TO_NUMBER = np.array([ 0, 1, 2, 4, 8, 16, 32, 64]).transpose()
 projectDir = 'd:/802.3/'
+
+pathToMatrix = projectDir + '/bliss_3df_01_220929.mat'
+workspace = scipy.io.loadmat(pathToMatrix)
+
+
+#P = workspace['p']
+
+#I_120_120 = np.identity(120)
+#G1 = np.vstack((P,I_120_120))
+
+#H1 = np.hstack((np.identity(8), P))
+
+# Check H is a parity matrix for G:
+#assert(np.all(H1.dot(G1) % 2 ==0))
 matrices = scipy.io.loadmat(projectDir + 'bliss_3df_01_220929.mat')
 p = matrices['p']
 h = matrices['h']

@@ -12,14 +12,22 @@ if projectDir == None:
      projectDir = "c:/users/omer/802.3/"
 sys.path.insert(1, projectDir)
 import numpy as np
-import ieeeConstants
-from ieee8023dj_d0p1 import encode_177_5
+from ieeeConstants import tv1_parity, tv1_tp4, generatorMatrix_177_5
+from ieee8023dj_d0p1 import encode_177_5,  g_177_1
 def test_encode_177_5_tv_1():
-    tv1Encoded, tv1xored = encode_177_5(G = ieeeConstants.G, M = ieeeConstants.tv1_doubled)
-    assert np.all(tv1Encoded[0,120:128] == ieeeConstants.tv1_parity)
+    tv1Encoded = encode_177_5(G = g_177_1, M = tv1_tp4)
+    assert np.all(tv1Encoded[0,60:68] == tv1_parity)
     
+def test_compareEncodingToTestVector():
+    M_xor = np.array([ (tv1_tp4[2*k] + tv1_tp4[2 * k + 1]) %2 for k in range(60) ])
+    parityAsCalculatedInDraft = M_xor.dot(g_177_1) %2
+    assert np.all(parityAsCalculatedInDraft == tv1_parity)
 
 def test_bchEncoder():
     pathToGeneratorMatrix = projectDir + "/bchMatrixEncoder.npy"
     h = np.load(pathToGeneratorMatrix)
     
+#def test_checkEqual():
+#    cw, mxor = encode_177_5(generatorMatrix_177_5, tv1_tp4)
+#    cw2 = encodeUsingMatrixOnly(generatorMatrix_177_5, mxor[1,0:60].transpose())
+#    return np.all(cw2 == mxor[1,:].transpose())

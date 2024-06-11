@@ -90,10 +90,10 @@ def plotSNRvsBER(SNRaxis = None, BERdata = None, fileName = None, inputLabel = '
     
 
     fig, ax = plt.subplots()
-    ax.semilogy(snrBaseline, berPam2, '^b', linewidth = 2, label = 'PAM 2, uncoded')
-    ax.semilogy(snrBaseline, berPam2Hamming_127_120, '*b', linewidth = 2, label = 'PAM 2, Hamming 127 120')
-    ax.semilogy(snrBaseline, berPam4, '^r', linewidth = 2, label = 'PAM 4')
-    ax.semilogy(snrBaseline, berPam4Hamming_127_120, '*r', linewidth = 2, label = 'PAM 4, Hamming 127 120')
+    pam2Uncoded = ax.semilogy(snrBaseline, berPam2, '^b', linewidth = 2, label = 'PAM 2, uncoded')
+    pam2Hamming_127_120 = ax.semilogy(snrBaseline, berPam2Hamming_127_120, '*b', linewidth = 2, label = 'PAM 2, Hamming 127 120')
+    pam4 = ax.semilogy(snrBaseline, berPam4, '^r', linewidth = 2, label = 'PAM 4')
+    pam4Hamming_127_120 = ax.semilogy(snrBaseline, berPam4Hamming_127_120, '*r', linewidth = 2, label = 'PAM 4, Hamming 127 120')
     #ax.plot(snrBaseline, berPam2, '--b', linewidth = 2, label = 'Uncoded PAM 2')
     ax.set_ylabel('Output Bit Error Ratio (BER)',fontsize=16)
     ax.set_xlabel('Signal to noise ratio (SNR)',fontsize=16)
@@ -102,7 +102,7 @@ def plotSNRvsBER(SNRaxis = None, BERdata = None, fileName = None, inputLabel = '
     #fig.set_size_inches(6.25, 6)
     ax.grid(True, which="both")
     #fig.tight_layout()
-
+    ax.legend([pam2Uncoded, pam2Hamming_127_120, pam4, pam4Hamming_127_120],  ['PAM 2, uncoded','PAM 2, Hamming 127 120', 'PAM 4', 'PAM 4, Hamming 127 120' ])
     
     #plt.semilogy(SNRaxis, BERdata, '^', linewidth = 3, label=inputLabel)
     if SNRaxis is not None and BERdata is not None:
@@ -120,6 +120,8 @@ def plotSNRvsBER(SNRaxis = None, BERdata = None, fileName = None, inputLabel = '
 def addDataToBerSnrFigure(axHandle, snrData, berData, dataLabel  ):
     axHandle.semilogy(snrData, berData, '^k', linewidth = 3, label = dataLabel)
     return
+
+
 
 def test_uncoded():
     SNRaxis = [ 2. ,  2.5,  3. ,  3.5,  4. ,  4.5,  5. ,  5.5,  6. ,  6.5,  7. ,
