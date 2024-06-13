@@ -11,10 +11,15 @@ from ieeeConstants import *
 BLISS_LOGICAL_DATA_TYPE = np.int32
 #please refer to https://www.ieee802.org/3/df/public/22_10/22_1005/bliss_3df_01_220929.pdf
 INDEX_TO_NUMBER = np.array([ 0, 1, 2, 4, 8, 16, 32, 64]).transpose()
-projectDir = 'd:/802.3/'
-
-pathToMatrix = projectDir + '/bliss_3df_01_220929.mat'
-workspace = scipy.io.loadmat(pathToMatrix)
+import os
+import sys
+projectDir = os.environ.get('IEEE8032DJ')
+#You don't have to define an environment variable, but then you have to give a path to the project here
+if projectDir == None: 
+     projectDir = "c:/users/omer/802.3/"
+sys.path.insert(1, projectDir)
+pathToMatrix = projectDir + '//bliss_3df_01_220929.mat'
+#workspace = scipy.io.loadmat(pathToMatrix)
 
 
 #P = workspace['p']
@@ -26,7 +31,7 @@ workspace = scipy.io.loadmat(pathToMatrix)
 
 # Check H is a parity matrix for G:
 #assert(np.all(H1.dot(G1) % 2 ==0))
-matrices = scipy.io.loadmat(projectDir + 'bliss_3df_01_220929.mat')
+matrices = scipy.io.loadmat(projectDir + '/bliss_3df_01_220929.mat')
 p = matrices['p']
 h = matrices['h']
 
@@ -80,33 +85,21 @@ def bliss_3df_01_220929_syndrom_decoder(slicedReceivedMessage, H):
     return correctedMessage, correctionVector, decoderFailure
 
 def simpleHammingDecoder(H, slicedReceivedMessage):
-    syndrome = np.squeeze(np.asarray(slicedReceivedMessage.dot(H)))
-    correctionVector = np.zeros(slicedReceivedMessage.shape[0], dtype = IEEE_8023_INT_DATA_TYPE)
+    #syndrome = slicedReceivedMessage.dot(H)
+    syndrome = H.dot(slicedReceivedMessage.transpose()) % 2
+    #syndrome = np.squeeze(np.asarray(slicedReceivedMessage.dot(H)))
+    correctionVector = np.zeros(len(slicedReceivedMessage), dtype = IEEE_8023_INT_DATA_TYPE)
     index = 0
     decoderFailure = False
-    if np.all(syndrome == 0):
-        pass
-    else:
-        found = False
-        while (index < H.shape[0]) and (not found):
-            if np.all(H[index , :] == syndrome):
-                found = True
-            else:
-                index = index + 1
-            
-        if index >= H.shape[0]:
-                decoderFailure = True
-        else:
-                correctionVector[index] = 1
-        
+    correctionVector = [np.all(syndrome == H[:,i]) for i in range(H.shape[1])]
+    if np.all(correctionVector == 0):
+        decoderFailure = True
     correctedMessage = (slicedReceivedMessage + correctionVector) %2
     return  correctedMessage, correctionVector, decoderFailure
+
+
+def hamming_177_1_using_polynomials():
+    #The key here was to find a polynomial that generates table 177_1, and I think it is  x^8 + x^7 + x^6 + x^5 + x^2 + x^1 + 1, except the notation is right to left, i.e.: the leading coefficient is on the right, and the free element (0 or 1 ) is on the left
+    pass
                 
-def test_simpleHammingDecoder():
-    for i in range(68):
-        error = np.zeros(68, dtype = IEEE_8023_INT_DATA_TYPE)
-        error[i] = 1
-        correctedMessage, correctionVector, decoderFailure = simpleHammingDecoder(H1.transpose(), error)
-        assert(np.all(correctedMessage == 0))
-        assert(np.all(error == correctionVector))
-    return 'OK'
+

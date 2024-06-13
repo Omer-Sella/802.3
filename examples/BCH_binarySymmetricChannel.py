@@ -12,7 +12,6 @@ reedSolomonProjectDir = os.environ.get('REEDSOLOMON')
 if reedSolomonProjectDir == None: 
      reedSolomonProjectDir = "c:/users/omer/reedSolomon/reedSolomon/"
 sys.path.insert(0, reedSolomonProjectDir)
-import os, sys
 ieeeProjectDir = os.environ.get('IEEE8023')
 if ieeeProjectDir == None: 
      ieeeProjectDir = "c:/users/omer/802.3/"
