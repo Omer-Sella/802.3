@@ -1,3 +1,7 @@
+Any license or permission regarding the MATLAB implementation of COM is pending, since it depends on explicit written licensing of the original files from: https://www.ieee802.org/3/df/public/tools/index.html
+
+The rest of the work in this project is under the MIT license:
+
 MIT License
 
 Copyright (c) 2024 Omer Sella
