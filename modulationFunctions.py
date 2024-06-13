@@ -5,25 +5,18 @@ Created on Mon Mar 27 13:03:02 2023
 @author: Megatron
 """
 import os
-import numpy as np
-import time
+import sys
 #from numba import jit, int32, float32, types, typed, boolean, float64, int64
 #import math
-projectDir = os.environ.get('8023')
+projectDir = os.environ.get('IEEE8032DJ')
 if projectDir == None:
     import pathlib
     projectDir = pathlib.Path(__file__).parent.absolute()
-import sys
+sys.path.insert(1, projectDir)
+import numpy as np
+import time
 from ieeeConstants import *
 
-
-
-# insert at 1, 0 is the script path (or '' in REPL)
-sys.path.insert(1, projectDir)
-#import io
-
-# LDPC_**_DATA_TYPE stores the data type over which all arithmetic is done.
-# It is a nice way of changing the data type of the entire implementation at one place.
 
 
 #@jit(nopython = True)
@@ -103,13 +96,15 @@ def pam4Slicer(vector, greyCoded = True):
             bitsDemodulated[2 * i + 1] = 1
     return bitsDemodulated, pam4Symbols
 
-def pam4QuatizationsFunction(signal, reference = np.array([(-2/3), 0, (2/3), np.inf]), levels = np.array([PAM4_LEVEL_LOW, PAM4_LEVEL_MID_LOW, PAM4_LEVEL_MID_HIGH, PAM4_LEVEL_HIGH])):
+def pam4Quatize(signal, reference = np.array([(-2/3), 0, (2/3), np.inf]), levels = np.array([PAM4_LEVEL_LOW, PAM4_LEVEL_MID_LOW, PAM4_LEVEL_MID_HIGH, PAM4_LEVEL_HIGH])):
+    """
+    Input signal of type np array of real numbers
+    """
     quantizedSignal = np.zeros(signal.shape, dtype = IEEE_8023_DECIMAL_DATA_TYPE)
     bitValue = np.zeros(signal.shape, dtype = IEEE_8023_INT_DATA_TYPE)
-    for i in range(len(signal)): # If this is a problem in runtime parallelize using np.tile of the signal
-        bitValue[i] = np.argmax(reference > signal[i])
-        quantizedSignal[i] = levels[bitValue[i]]
-    squaredError = np.square(signal - quantizedSignal)
+    #for i in range(len(signal)): # If this is a problem in runtime parallelize using np.tile of the signal
+    bitValue = np.array([np.argmax(reference > signal[i]) for i in signal])
+    quantizedSignal = np.array([levels[bitValue[i]] for i in signal])
+    squaredError = np.square(signal - quantizedSignal) #Maybe bitValue ?
     return quantizedSignal, bitValue, squaredError
     
-
