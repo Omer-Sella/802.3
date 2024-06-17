@@ -59,7 +59,7 @@ def modulatePAM4(vector, grayCoding = True, precoding = False):
     if grayCoding:
         pam4Symbols = 2 * np.array(vector[0::2])  +  ((np.array(vector[1::2]) + np.array(vector[0::2])) %2)
     else:
-        pam4Symbols = vector[0::2]  +  2 * vector[1::2]
+        pam4Symbols = 2 * vector[0::2]  +  vector[1::2]
         
     if precoding:
         pam4SymbolsPrecoded = precoder(pam4Symbols)
@@ -133,7 +133,7 @@ def pam4SymbolsToBits(pam4Symbols, grayCoded = True):
             bits[2 * i + 1] = 1 * (pam4Symbols[i] == 1 or pam4Symbols[i] == 2)
     else:
         for i in range(len(pam4Symbols)):
-            bits[2 * i] = 1 * (pam4Symbols[i] > 1)
+            bits[2 * i] = pam4Symbols[i] // 2
             bits[2 * i + 1] = pam4Symbols[i] % 2
     return bits
         
