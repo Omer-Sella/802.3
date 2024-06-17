@@ -15,7 +15,8 @@ if projectDir == None:
 sys.path.insert(1, projectDir)
 import numpy as np
 import time
-from ieeeConstants import *
+import ieeeConstants
+from ieeeConstants import IEEE_8023_INT_DATA_TYPE, IEEE_8023_DECIMAL_DATA_TYPE, PAM4_LEVEL_HIGH, PAM4_LEVEL_LOW, PAM4_LEVEL_MID_HIGH, PAM4_LEVEL_MID_LOW
 
 
 
@@ -44,7 +45,10 @@ def precoder(vector):
     return vectorPrecoded
     
 
-def modulatePAM4(vector, grayCoding = True, precoding = False):
+def modulatePAM4(vector, grayCoding = True, precoding = False, levels = [ieeeConstants.PAM4_LEVEL_LOW, 
+                                                                         ieeeConstants.PAM4_LEVEL_MID_LOW, 
+                                                                         ieeeConstants.PAM4_LEVEL_MID_HIGH, 
+                                                                         ieeeConstants.PAM4_LEVEL_HIGH]):
     # 177.4.7.1 of draft 1.0 refers to 120.5.7.1 
     # 120.5.7.1 Gray mapping for PAM4 encoded lanes
     # For output lanes encoded as PAM4 (for 200GBASE-R, where the number of output lanes is 4, or for 
@@ -67,10 +71,10 @@ def modulatePAM4(vector, grayCoding = True, precoding = False):
         pam4SymbolsPrecoded = pam4Symbols
     
     modulatedVector = np.zeros(vector.shape[0] // 2, dtype = IEEE_8023_DECIMAL_DATA_TYPE)
-    modulatedVector[np.where(pam4SymbolsPrecoded == 0)] = PAM4_LEVEL_LOW
-    modulatedVector[np.where(pam4SymbolsPrecoded == 1)] = PAM4_LEVEL_MID_LOW
-    modulatedVector[np.where(pam4SymbolsPrecoded == 2)] = PAM4_LEVEL_MID_HIGH
-    modulatedVector[np.where(pam4SymbolsPrecoded == 3)] = PAM4_LEVEL_HIGH
+    modulatedVector[np.where(pam4SymbolsPrecoded == 0)] = levels[0] #PAM4_LEVEL_LOW
+    modulatedVector[np.where(pam4SymbolsPrecoded == 1)] = levels[1] #PAM4_LEVEL_MID_LOW
+    modulatedVector[np.where(pam4SymbolsPrecoded == 2)] = levels[2] #PAM4_LEVEL_MID_HIGH
+    modulatedVector[np.where(pam4SymbolsPrecoded == 3)] = levels[3] #PAM4_LEVEL_HIGH
     
     return modulatedVector, pam4Symbols, pam4SymbolsPrecoded
 
@@ -109,7 +113,7 @@ def pam4Slicer(vector, greyCoded = True):
             bitsDemodulated[2 * i + 1] = 1
     return bitsDemodulated, pam4Symbols
 
-def pam4Quantize(signal, high = PAM4_LEVEL_HIGH, low = PAM4_LEVEL_LOW, effectiveNumberOfBits = 6):
+def pam4Quantize(signal, effectiveNumberOfBits = 6, high = ieeeConstants.PAM4_LEVEL_HIGH, low = ieeeConstants.PAM4_LEVEL_LOW):
     q = 1/(2 ** effectiveNumberOfBits)
     quantizedSignal = q * np.floor(signal/q)
     return quantizedSignal
