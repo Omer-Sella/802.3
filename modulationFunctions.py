@@ -124,4 +124,17 @@ def pam4Slice(signal, reference = np.array([PAM4_LEVEL_LOW, PAM4_LEVEL_MID_LOW, 
     pam4Symbols = np.argmin(np.abs(signalRepeated - referenceRepeated), axis = 0)
     errorAbsoluteValue = np.min(np.abs(signalRepeated - referenceRepeated), axis = 0)
     return pam4Symbols, errorAbsoluteValue
+
+def pam4SymbolsToBits(pam4Symbols, grayCoded = True):
+    bits = np.zeros(len(pam4Symbols) * 2, dtype = IEEE_8023_INT_DATA_TYPE)
+    if grayCoded:
+        for i in range(len(pam4Symbols)):
+            bits[2 * i] = 1 * (pam4Symbols[i] > 1)
+            bits[2 * i + 1] = 1 * (pam4Symbols[i] == 1 or pam4Symbols[i] == 2)
+    else:
+        for i in range(len(pam4Symbols)):
+            bits[2 * i] = 1 * (pam4Symbols[i] > 1)
+            bits[2 * i + 1] = pam4Symbols[i] % 2
+    return bits
+        
     
