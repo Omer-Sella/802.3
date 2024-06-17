@@ -20,6 +20,9 @@ from ieee8023dj_d0p1 import encode_177_5
 from hammingBasics import simpleHammingDecoder
 import numpy as np
 
+
+
+
 def check_equivalenctToPolynomial():
     
     alpha = gf256([0,0,0,0,0,0,1,0])

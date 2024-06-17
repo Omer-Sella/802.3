@@ -96,15 +96,19 @@ def pam4Slicer(vector, greyCoded = True):
             bitsDemodulated[2 * i + 1] = 1
     return bitsDemodulated, pam4Symbols
 
-def pam4Quatize(signal, reference = np.array([(-2/3), 0, (2/3), np.inf]), levels = np.array([PAM4_LEVEL_LOW, PAM4_LEVEL_MID_LOW, PAM4_LEVEL_MID_HIGH, PAM4_LEVEL_HIGH])):
+def pam4Quantize(signal, high = PAM4_LEVEL_HIGH, low = PAM4_LEVEL_LOW, effectiveNumberOfBits = 6):
+    q = 1/(2 ** effectiveNumberOfBits)
+    quantizedSignal = q * np.floor(signal/q)
+    return quantizedSignal
+    
+def pam4Slice(signal, reference = np.array([PAM4_LEVEL_LOW, PAM4_LEVEL_MID_LOW, PAM4_LEVEL_MID_HIGH, PAM4_LEVEL_HIGH])):
     """
-    Input signal of type np array of real numbers
+    Input signal of type np array of real numbers assumed to be a 1 dimensional column vector - no safety
     """
-    quantizedSignal = np.zeros(signal.shape, dtype = IEEE_8023_DECIMAL_DATA_TYPE)
-    bitValue = np.zeros(signal.shape, dtype = IEEE_8023_INT_DATA_TYPE)
-    #for i in range(len(signal)): # If this is a problem in runtime parallelize using np.tile of the signal
-    bitValue = np.array([np.argmax(reference > signal[i]) for i in signal])
-    quantizedSignal = np.array([levels[bitValue[i]] for i in signal])
-    squaredError = np.square(signal - quantizedSignal) #Maybe bitValue ?
-    return quantizedSignal, bitValue, squaredError
+    referenceRepeated = np.tile(reference[:,np.newaxis], (1,len(signal)))
+    signalRepeated = np.tile(signal, (len(reference),1))
+    # the result of np.argmin(np.abs(signalRepeated - referenceRepeated), axis = 0) is a vector with values 0,1,2,3 depending on the ordering of the reference levels - no safety, the user needs to think how they order the reference so that the PAM4 slicing will be correct
+    pam4Symbols = np.argmin(np.abs(signalRepeated - referenceRepeated), axis = 0)
+    errorAbsoluteValue = np.min(np.abs(signalRepeated - referenceRepeated), axis = 0)
+    return pam4Symbols, errorAbsoluteValue
     
