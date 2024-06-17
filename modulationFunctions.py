@@ -34,32 +34,45 @@ def modulatePAM2(vector):
     modulatedVector[np.where(vector == 0)] = -1
     return modulatedVector
 
-def modulatePAM4(vector, greyCoded = True):
-    #vector is assumed to be a binary vector of even length
+def precoder(vector):
+    # 1/(1+D) modulu 4 precoder - need referece
+    vectorPrecoded = np.zeros(len(vector), dtype = IEEE_8023_INT_DATA_TYPE)
+    delay = 0
+    for i in range(len(vector)):
+        vectorPrecoded[i] = (vector[i] + delay) %4
+        delay = vectorPrecoded[i]
+    return vectorPrecoded
     
+
+def modulatePAM4(vector, grayCoding = True, precoding = False):
+    # 177.4.7.1 of draft 1.0 refers to 120.5.7.1 
+    # 120.5.7.1 Gray mapping for PAM4 encoded lanes
+    # For output lanes encoded as PAM4 (for 200GBASE-R, where the number of output lanes is 4, or for 
+    # 400GBASE-R, where the number of output lanes is 4 or 8), the PMA transmit process shall map consecutive 
+    # pairs of bits {A, B}, where A is the bit arriving first, to a Gray-coded symbol as follows:
+    # {0, 0} maps to 0,
+    # {0, 1} maps to 1,
+    # {1, 1} maps to 2, and
+    # {1, 0} maps to 3
+    #vector is assumed to be a binary vector of even length
     # note that the following line means the stream goes [MSB0,LSB0,MSB1,LSB1 ...]
-    newVector = 2 * vector[0::2]  +  vector[1::2]
-    modulatedVector = np.zeros(vector.shape[0] // 2, dtype = IEEE_8023_DECIMAL_DATA_TYPE)
-    if not greyCoded:
-        #00 --> -1
-        #01 --> -1/3
-        #10 --> 1/3 
-        #11 --> 1
-        
-        modulatedVector[np.where(newVector == 0)] = PAM4_LEVEL_LOW
-        modulatedVector[np.where(newVector == 1)] = PAM4_LEVEL_MID_LOW
-        modulatedVector[np.where(newVector == 2)] = PAM4_LEVEL_MID_HIGH
-        modulatedVector[np.where(newVector == 3)] = PAM4_LEVEL_HIGH
+    if grayCoding:
+        pam4Symbols = 2 * np.array(vector[0::2])  +  ((np.array(vector[1::2]) + np.array(vector[0::2])) %2)
     else:
-        #00 --> -1
-        #01 --> -1/3
-        #10 --> 1 
-        #11 --> 1/3
-         modulatedVector[np.where(newVector == 0)] = PAM4_LEVEL_LOW
-         modulatedVector[np.where(newVector == 1)] = PAM4_LEVEL_MID_LOW
-         modulatedVector[np.where(newVector == 2)] = PAM4_LEVEL_HIGH
-         modulatedVector[np.where(newVector == 3)] = PAM4_LEVEL_MID_HIGH
-    return modulatedVector
+        pam4Symbols = vector[0::2]  +  2 * vector[1::2]
+        
+    if precoding:
+        pam4SymbolsPrecoded = precoder(pam4Symbols)
+    else:
+        pam4SymbolsPrecoded = pam4Symbols
+    
+    modulatedVector = np.zeros(vector.shape[0] // 2, dtype = IEEE_8023_DECIMAL_DATA_TYPE)
+    modulatedVector[np.where(pam4SymbolsPrecoded == 0)] = PAM4_LEVEL_LOW
+    modulatedVector[np.where(pam4SymbolsPrecoded == 1)] = PAM4_LEVEL_MID_LOW
+    modulatedVector[np.where(pam4SymbolsPrecoded == 2)] = PAM4_LEVEL_MID_HIGH
+    modulatedVector[np.where(pam4SymbolsPrecoded == 3)] = PAM4_LEVEL_HIGH
+    
+    return modulatedVector, pam4Symbols, pam4SymbolsPrecoded
 
 def pam4Slicer(vector, greyCoded = True):
     pam4Symbols = np.zeros((vector.shape[0]), dtype = IEEE_8023_INT_DATA_TYPE)
