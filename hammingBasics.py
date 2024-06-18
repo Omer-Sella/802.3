@@ -8,6 +8,7 @@ Created on Wed Mar 22 19:09:31 2023
 import scipy.io
 import numpy as np
 from ieeeConstants import *
+from ieeeConstants import parityMatrix_177_5
 BLISS_LOGICAL_DATA_TYPE = np.int32
 #please refer to https://www.ieee802.org/3/df/public/22_10/22_1005/bliss_3df_01_220929.pdf
 INDEX_TO_NUMBER = np.array([ 0, 1, 2, 4, 8, 16, 32, 64]).transpose()
@@ -57,7 +58,7 @@ sanityCheck = G.dot(h.transpose()) % 2
 
 #Observation - to get a coded message, multiply a message on the left by G on the right: codedMessage = message.dot(G)
 
-def bliss_3df_01_220929_syndrom_decoder(slicedReceivedMessage, H):
+def bliss_3df_01_220929_syndrom_decoder(H, slicedReceivedMessage):
 
     #S = H.dot(slicedReceivedMessage) %2
     S = slicedReceivedMessage.dot(H.transpose()) %2
@@ -85,18 +86,42 @@ def bliss_3df_01_220929_syndrom_decoder(slicedReceivedMessage, H):
     return correctedMessage, correctionVector, decoderFailure
 
 def simpleHammingDecoder(H, slicedReceivedMessage):
+    """
+    H is parity matrix, assumed to have unique binary columns, i.e.: it can correct one bit flip.
+    slicedReceivedMessage is assumed to be a binary vector of length compatible to the dimensions of H 
+    
+    decoderFailue - is a flag that indicates whether the decoder found a correction (or if non was needed)
+    correctionVector - should be a binary vector of at most one nonzero
+    correctedMessage - a binary vector after correction was applied, i.e.: (slicedReceivedMessage + correctionVector) %2
+    
+    """
+    correctionVector = np.zeros(len(slicedReceivedMessage), dtype = IEEE_8023_INT_DATA_TYPE)
+    decoderFailure = False
     #syndrome = slicedReceivedMessage.dot(H)
     syndrome = H.dot(slicedReceivedMessage.transpose()) % 2
+    if np.all(syndrome == 0):
+        decoderFailure = False
+    else:
     #syndrome = np.squeeze(np.asarray(slicedReceivedMessage.dot(H)))
-    correctionVector = np.zeros(len(slicedReceivedMessage), dtype = IEEE_8023_INT_DATA_TYPE)
-    index = 0
-    decoderFailure = False
-    correctionVector = [np.all(syndrome == H[:,i]) for i in range(H.shape[1])]
-    if np.all(correctionVector == 0):
-        decoderFailure = True
+        correctionVector = [np.all(syndrome == H[:,i]) for i in range(H.shape[1])]
+        if np.all(correctionVector == 0):
+            decoderFailure = True
     correctedMessage = (slicedReceivedMessage + correctionVector) %2
     return  correctedMessage, correctionVector, decoderFailure
 
+def hammingWrapper(bitsIn):
+    """
+    This function XORs bit pairs from 0 to 120, and leaves rightmost 8 bits untouched, then applies Hamming
+    hammingDecoder68BitFunction is assumed to be a Hamming decoder, already set to some parity matrix H
+    """
+    def hammingDecoder68BitFunction(x):
+        return simpleHammingDecoder(parityMatrix_177_5, x)
+    xored = np.zeros(68, dtype = IEEE_8023_INT_DATA_TYPE)
+    xored[0:60] =  [(bitsIn[2*k] + bitsIn[2 * k + 1]) %2 for k in range(60) ]
+    xored[60:68] =  bitsIn[120:128]
+    correctedMessage, correctionVector, decoderFailure = hammingDecoder68BitFunction(xored)
+    return correctedMessage, correctionVector, decoderFailure
+    
 
 def hamming_177_1_using_polynomials():
     #The key here was to find a polynomial that generates table 177_1, and I think it is  x^8 + x^7 + x^6 + x^5 + x^2 + x^1 + 1, except the notation is right to left, i.e.: the leading coefficient is on the right, and the free element (0 or 1 ) is on the left

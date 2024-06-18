@@ -31,7 +31,7 @@ PAM4_LEVEL_MID_LOW = -(1/3)
 PAM4_LEVEL_MID_HIGH = 1/3
 PAM4_LEVEL_HIGH = 1
 
-g_177_1 = np.matrix(
+g_177_1 = np.array(
   #Table 177–1—Generation matrix for Hamming(68,60)
  [
  [1,0,0,1,0,1,0,0],

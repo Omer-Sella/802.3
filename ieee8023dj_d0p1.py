@@ -17,7 +17,6 @@ def encode_177_5(G, M):
     
     M_xor = np.array([ (M[2*k] + M[2 * k + 1]) %2 for k in range(60) ]) # Hardcoded - the length of the data message is 120 !
     M_parity = M_xor.dot(G) %2
-    M_xor = np.expand_dims(M_xor, axis = 0)
     codeword = np.hstack(( M_xor, M_parity))
     return codeword
 
