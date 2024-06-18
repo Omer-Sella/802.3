@@ -44,7 +44,7 @@ def test_correctOneErrorZeroDataExhaustiveCoverage():
         assert (np.sum(correctionVector) == 1)
         assert (correctionVector[index] == 1)
         encodedZeroData[index] = 0
-    return 'OK'
+    
     
 def test_correctOneErrorRandomDataSimpleHammingDecoder(someBigNumber = 1000):
     def smallEncoder(x):
@@ -70,7 +70,7 @@ def test_simpleHammingDecoder():
         correctedMessage, correctionVector, decoderFailure = simpleHammingDecoder(np.array(parityMatrix_177_5), error)
         assert(np.all(correctedMessage == 0))
         assert(np.all(error == correctionVector))
-    return 'OK'
+    
 
 def test_simpleHammingDecoderZeroCodeword():
     error = np.zeros(68, dtype = IEEE_8023_INT_DATA_TYPE)
