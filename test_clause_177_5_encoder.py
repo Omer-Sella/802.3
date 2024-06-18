@@ -10,6 +10,8 @@ projectDir = os.environ.get('IEEE8032DJ')
 #You don't have to define an environment variable, but then you have to give a path to the project here
 if projectDir == None: 
      projectDir = "c:/users/omer/802.3/"
+     currentPath = os.getcwd()
+     sys.path.insert(1, currentPath)
 sys.path.insert(1, projectDir)
 import numpy as np
 from ieeeConstants import tv1_parity, tv1_tp4, generatorMatrix_177_5
@@ -24,7 +26,7 @@ def test_compareEncodingToTestVector():
     assert np.all(parityAsCalculatedInDraft == tv1_parity)
 
 def test_bchEncoder():
-    pathToGeneratorMatrix = projectDir + "/bchMatrixEncoder.npy"
+    pathToGeneratorMatrix = currentPath + "/bchMatrixEncoder.npy"
     h = np.load(pathToGeneratorMatrix)
     
 #def test_checkEqual():
