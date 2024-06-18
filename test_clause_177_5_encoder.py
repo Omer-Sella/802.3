@@ -16,7 +16,7 @@ from ieeeConstants import tv1_parity, tv1_tp4, generatorMatrix_177_5
 from ieee8023dj_d0p1 import encode_177_5,  g_177_1
 def test_encode_177_5_tv_1():
     tv1Encoded = encode_177_5(G = g_177_1, M = tv1_tp4)
-    assert np.all(tv1Encoded[0,60:68] == tv1_parity)
+    assert np.all(tv1Encoded[60:68] == tv1_parity)
     
 def test_compareEncodingToTestVector():
     M_xor = np.array([ (tv1_tp4[2*k] + tv1_tp4[2 * k + 1]) %2 for k in range(60) ])

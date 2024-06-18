@@ -50,7 +50,7 @@ def test_pam4Modulation():
     
     
 def test_prbs9():
-    from ieeeConstrants import PRBS9Q_seed111111111_clause_120_5_11_2_a
+    from ieeeConstants import PRBS9Q_seed111111111_clause_120_5_11_2_a
     pass
     
 
