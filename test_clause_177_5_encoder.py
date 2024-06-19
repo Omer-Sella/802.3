@@ -9,10 +9,10 @@ import sys
 projectDir = os.environ.get('IEEE8032DJ')
 #You don't have to define an environment variable, but then you have to give a path to the project here
 if projectDir == None: 
-     projectDir = "c:/users/omer/802.3/"
-     currentPath = os.getcwd()
-     sys.path.insert(1, currentPath)
+     projectDir = "c:/users/omer/802.3/"     
 sys.path.insert(1, projectDir)
+currentPath = os.getcwd()
+sys.path.insert(1, currentPath)
 import numpy as np
 from ieeeConstants import tv1_parity, tv1_tp4, generatorMatrix_177_5
 from ieee8023dj_d0p1 import encode_177_5,  g_177_1

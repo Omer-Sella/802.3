@@ -123,7 +123,7 @@ def addDataToBerSnrFigure(axHandle, snrData, berData, dataLabel  ):
 
 
 
-def test_uncoded():
+def example_PAM2uncoded():
     SNRaxis = [ 2. ,  2.5,  3. ,  3.5,  4. ,  4.5,  5. ,  5.5,  6. ,  6.5,  7. ,
              7.5,  8. ,  8.5,  9. ,  9.5, 10. ]
     data = LOCAL_PRNG.randint(low = 0, high = 1, size = SAMPLE_SIZE)
