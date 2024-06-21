@@ -57,15 +57,38 @@ def test_prbs9():
 def test_roundrtipGrayCoded():
     bitsTx = np.random.randint(0,2,1000)
     modulatedVector, pam4SymbolsTx, pam4SymbolsPrecoded = modulatePAM4(bitsTx, grayCoding = True, precoding = False)
-    pam4SymbolsRx, errorAbsoluteValue = pam4Slice(modulatedVector)
+    pam4SymbolsRx, errorAbsoluteValue, classifier = pam4Slice(modulatedVector)
     bitsRx = pam4SymbolsToBits(pam4SymbolsRx, grayCoded = True)
     assert (np.all(bitsTx == bitsRx))
     
 def test_roundrtipNoGrayCoding():
     bitsTx = np.random.randint(0,2,1000)
     modulatedVector, pam4SymbolsTx, pam4SymbolsPrecoded = modulatePAM4(bitsTx, grayCoding = False, precoding = False)
-    pam4SymbolsRx, errorAbsoluteValue = pam4Slice(modulatedVector)
+    pam4SymbolsRx, errorAbsoluteValue, classifier = pam4Slice(modulatedVector)
     bitsRx = pam4SymbolsToBits(pam4SymbolsRx, grayCoded = False)
     assert (np.all(bitsTx == bitsRx))
     
+def test_pam4ClassifierOverData():
+    # Classifier is a 4 X len(modulatedVector) array such that: 
+    # argmax over axis==0 should give the pam4 symbol
+    # the sum over axis=0 (so vertically, i.e. the sum of 4 possibilities) == 1
+    # all elements are >= 0
+    bitsTx = np.random.randint(0,2,1000)
+    modulatedVector, pam4SymbolsTx, pam4SymbolsPrecoded = modulatePAM4(bitsTx, grayCoding = False, precoding = False)
+    pam4SymbolsRx, errorAbsoluteValue, classifier = pam4Slice(modulatedVector)
+    assert(np.all(pam4SymbolsRx == np.argmax(classifier, axis = 0)))
+    assert(np.all(np.sum(classifier, axis = 0) == 1))
+    assert (np.all(classifier >= 0))
+    
+def test_pam4ClassifierOverRandomNumbers(sampleSize = 1000):
+    # Classifier is a 4 X len(modulatedVector) array such that: 
+    # argmax over axis==0 should give the pam4 symbol
+    # the sum over axis=0 (so vertically, i.e. the sum of 4 possibilities) == 1
+    # all elements are >= 0
+    
+    modulatedVector = np.random.uniform(low = -3, high = 3, size = sampleSize)
+    pam4SymbolsRx, errorAbsoluteValue, classifier = pam4Slice(modulatedVector)
+    assert(np.all(pam4SymbolsRx == np.argmax(classifier, axis = 0)))
+    assert(np.all(np.sum(classifier, axis = 0) == 1))
+    assert (np.all(classifier >= 0))
     

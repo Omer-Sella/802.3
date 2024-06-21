@@ -124,10 +124,12 @@ def pam4Slice(signal, reference = np.array([PAM4_LEVEL_LOW, PAM4_LEVEL_MID_LOW, 
     """
     referenceRepeated = np.tile(reference[:,np.newaxis], (1,len(signal)))
     signalRepeated = np.tile(signal, (len(reference),1))
+    classifier = np.divide ( np.exp(-1 * np.abs(signalRepeated - referenceRepeated)) , 
+                            ( np.exp(-1 * np.sum(np.abs(signalRepeated - referenceRepeated), axis = 0))))
     # the result of np.argmin(np.abs(signalRepeated - referenceRepeated), axis = 0) is a vector with values 0,1,2,3 depending on the ordering of the reference levels - no safety, the user needs to think how they order the reference so that the PAM4 slicing will be correct
     pam4Symbols = np.argmin(np.abs(signalRepeated - referenceRepeated), axis = 0)
     errorAbsoluteValue = np.min(np.abs(signalRepeated - referenceRepeated), axis = 0)
-    return pam4Symbols, errorAbsoluteValue
+    return pam4Symbols, errorAbsoluteValue, classifier
 
 def pam4SymbolsToBits(pam4Symbols, grayCoded = True):
     bits = np.zeros(len(pam4Symbols) * 2, dtype = IEEE_8023_INT_DATA_TYPE)
@@ -141,4 +143,11 @@ def pam4SymbolsToBits(pam4Symbols, grayCoded = True):
             bits[2 * i + 1] = pam4Symbols[i] % 2
     return bits
         
-    
+
+def pam4ClassifierToBits(classifier, grayCoded = True):
+    """
+    The idea is simple - we multiply the classifier value (probability) by the corresponding bit pair and sum.
+    There is no need to use pam4SymbolsToBits, because the classifier represents probabilities for ALL pam4 symbols.
+    In fact, since the is no control logic (if,else) or list comprehension here, this should be faster than pam4SymbolsToBits.
+    """
+    pass

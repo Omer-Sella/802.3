@@ -96,7 +96,7 @@ def simpleHammingDecoder(H, slicedReceivedMessage):
     
     """
     correctionVector = np.zeros(len(slicedReceivedMessage), dtype = IEEE_8023_INT_DATA_TYPE)
-    decoderFailure = False
+    decoderFailure = True
     #syndrome = slicedReceivedMessage.dot(H)
     syndrome = H.dot(slicedReceivedMessage.transpose()) % 2
     if np.all(syndrome == 0):
@@ -105,22 +105,65 @@ def simpleHammingDecoder(H, slicedReceivedMessage):
     #syndrome = np.squeeze(np.asarray(slicedReceivedMessage.dot(H)))
         correctionVector = [np.all(syndrome == H[:,i]) for i in range(H.shape[1])]
         if np.all(correctionVector == 0):
-            decoderFailure = True
+            decoderFailure = False
     correctedMessage = (slicedReceivedMessage + correctionVector) %2
-    return  correctedMessage, correctionVector, decoderFailure
+    return  correctedMessage, correctionVector, decoderFailure, syndrome
 
-def hammingWrapper(bitsIn):
+def hammingWrapper128_68_128(bitsIn):
     """
     This function XORs bit pairs from 0 to 120, and leaves rightmost 8 bits untouched, then applies Hamming
     hammingDecoder68BitFunction is assumed to be a Hamming decoder, already set to some parity matrix H
+    
+    If the decoding succeeds, the result has to be run again through the decoder, since we need to figure out which of the bits from the xored bit-pairs was flipped
     """
     def hammingDecoder68BitFunction(x):
         return simpleHammingDecoder(parityMatrix_177_5, x)
     xored = np.zeros(68, dtype = IEEE_8023_INT_DATA_TYPE)
     xored[0:60] =  [(bitsIn[2*k] + bitsIn[2 * k + 1]) %2 for k in range(60) ]
     xored[60:68] =  bitsIn[120:128]
-    correctedMessage, correctionVector, decoderFailure = hammingDecoder68BitFunction(xored)
-    return correctedMessage, correctionVector, decoderFailure
+    correctedMessage128 = np.ones(128, IEEE_8023_INT_DATA_TYPE)
+    correctionVector128 = np.zeros(128, IEEE_8023_INT_DATA_TYPE)
+    correctedMessage, correctionVector, decoderFailure, syndromes = hammingDecoder68BitFunction(xored)
+    print(xored)
+    #print(correctedMessage)
+    #print(correctionVector)
+    print(decoderFailure)
+    print(syndromes)
+    # Now we need to reverse engineer which of the original bits the hamming-corrected-bit corresponds to.
+    # We do this in a very simple minded way - try to correct both, and see which one comes back as a valid codeword:
+    if not decoderFailure and not (np.all(syndromes == 0)): #I.e.: Hamming thinks there is (up to) one error and it found it, meaning the correctionVector is one hot or all zero
+        print(correctionVector)    
+        assert(np.sum(correctionVector) == 1) # Safety - remove when you think everything works. I need to add a test for this.
+        oneHotIndex = np.where(correctionVector == 1)[0]
+        if oneHotIndex >= 60:
+            correctionVector128 = np.zeros(128, IEEE_8023_INT_DATA_TYPE) 
+            correctionVector128[oneHotIndex] = 1
+            correctedMessage128 = bitsIn + correctionVector128
+        else:
+            # Try flipping location 2 * oneHotIndex and see what comes back
+            correctionVector128 = np.zeros(128, IEEE_8023_INT_DATA_TYPE) 
+            correctionVector128[2 * oneHotIndex] = 1
+            correctedVector128 = bitsIn + correctionVector128
+            xored = np.zeros(68, dtype = IEEE_8023_INT_DATA_TYPE)
+            xored[0:60] =  [(correctedVector128[2*k] + correctedVector128[2 * k + 1]) %2 for k in range(60) ]
+            xored[60:68] =  correctedVector128[120:128]
+            correctedMessage0, correctionVector0, decoderFailure0, syndromes0 = hammingDecoder68BitFunction(xored)
+            if not decoderFailure0 and np.all(syndromes0 == 0):
+                assert(np.all(correctedMessage0 == correctedMessage))
+                correctedMessage128 = correctedVector128
+            else:
+                #It must be the other option, i.e. 2*oneHotIndex + 1
+                correctionVector128 = np.zeros(128, IEEE_8023_INT_DATA_TYPE) 
+                correctionVector128[2 * oneHotIndex + 1] = 1
+                correctedVector128 = bitsIn + correctionVector128
+                xored = np.zeros(68, dtype = IEEE_8023_INT_DATA_TYPE)
+                xored[0:60] =  [(correctedVector128[2*k] + correctedVector128[2 * k + 1]) %2 for k in range(60) ]
+                xored[60:68] =  correctedVector128[120:128]
+                correctedMessage1, correctionVector1, decoderFailure1, syndromes1 = hammingDecoder68BitFunction(xored)
+                assert(np.all(correctedMessage1 == correctedMessage))
+                correctedMessage128 = correctedVector128
+    
+    return correctedMessage128, correctionVector128, decoderFailure, syndromes
     
 
 def hamming_177_1_using_polynomials():
