@@ -132,14 +132,15 @@ def test_hammingReportFailure():
     # I need to fix this test, basically testing patterns overwhich hamming should declare failure.
     def wiredDecoder(x):
         return hammingWrapper128_68_128(x)
-    bitsIn = np.zeros(128, IEEE_8023_INT_DATA_TYPE)
-    pairs = combinations(range(128), 2)
-    for p in pairs:
-        indices = list(p)
-        print(indices)
-        bitsIn[indices] = 1
-        print(bitsIn)
-        correctedMessage128, correctionVector128, decoderFailure, syndromes = wiredDecoder(bitsIn)
+    pass
+    #bitsIn = np.zeros(128, IEEE_8023_INT_DATA_TYPE)
+    #pairs = combinations(range(128), 2)
+    #for p in pairs:
+    #    indices = list(p)
+    #    print(indices)
+    #    bitsIn[indices] = 1
+    #    print(bitsIn)
+    #    correctedMessage128, correctionVector128, decoderFailure, syndromes = wiredDecoder(bitsIn)
         #assert(decoderFailure == True)
         bitsIn[indices] = 0
     

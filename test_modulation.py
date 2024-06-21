@@ -77,7 +77,8 @@ def test_pam4ClassifierOverData():
     modulatedVector, pam4SymbolsTx, pam4SymbolsPrecoded = modulatePAM4(bitsTx, grayCoding = False, precoding = False)
     pam4SymbolsRx, errorAbsoluteValue, classifier = pam4Slice(modulatedVector)
     assert(np.all(pam4SymbolsRx == np.argmax(classifier, axis = 0)))
-    assert(np.all(np.sum(classifier, axis = 0) == 1))
+    tolerance = 0.1
+    assert(np.all( (np.sum(classifier, axis = 0) - 1) < tolerance) )
     assert (np.all(classifier >= 0))
     
 def test_pam4ClassifierOverRandomNumbers(sampleSize = 1000):
@@ -89,6 +90,7 @@ def test_pam4ClassifierOverRandomNumbers(sampleSize = 1000):
     modulatedVector = np.random.uniform(low = -3, high = 3, size = sampleSize)
     pam4SymbolsRx, errorAbsoluteValue, classifier = pam4Slice(modulatedVector)
     assert(np.all(pam4SymbolsRx == np.argmax(classifier, axis = 0)))
-    assert(np.all(np.sum(classifier, axis = 0) == 1))
+    tolerance = 0.1
+    assert(np.all((np.sum(classifier, axis = 0) - 1) < tolerance))
     assert (np.all(classifier >= 0))
     

@@ -124,8 +124,8 @@ def pam4Slice(signal, reference = np.array([PAM4_LEVEL_LOW, PAM4_LEVEL_MID_LOW, 
     """
     referenceRepeated = np.tile(reference[:,np.newaxis], (1,len(signal)))
     signalRepeated = np.tile(signal, (len(reference),1))
-    classifier = np.divide ( np.exp(-1 * np.abs(signalRepeated - referenceRepeated)) , 
-                            ( np.exp(-1 * np.sum(np.abs(signalRepeated - referenceRepeated), axis = 0))))
+    g = lambda x: np.exp(-1*np.abs(x))
+    classifier =  g(signalRepeated - referenceRepeated) / np.sum( g(signalRepeated - referenceRepeated), axis = 0)
     # the result of np.argmin(np.abs(signalRepeated - referenceRepeated), axis = 0) is a vector with values 0,1,2,3 depending on the ordering of the reference levels - no safety, the user needs to think how they order the reference so that the PAM4 slicing will be correct
     pam4Symbols = np.argmin(np.abs(signalRepeated - referenceRepeated), axis = 0)
     errorAbsoluteValue = np.min(np.abs(signalRepeated - referenceRepeated), axis = 0)
