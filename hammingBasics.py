@@ -8,7 +8,7 @@ Created on Wed Mar 22 19:09:31 2023
 import scipy.io
 import numpy as np
 from ieeeConstants import *
-from ieeeConstants import parityMatrix_177_5
+from ieeeConstants import parityMatrix_177_5, IEEE_8023_INT_DATA_TYPE
 BLISS_LOGICAL_DATA_TYPE = np.int32
 #please refer to https://www.ieee802.org/3/df/public/22_10/22_1005/bliss_3df_01_220929.pdf
 INDEX_TO_NUMBER = np.array([ 0, 1, 2, 4, 8, 16, 32, 64]).transpose()
@@ -25,29 +25,29 @@ pathToMatrix = projectDir + '//bliss_3df_01_220929.mat'
 
 #P = workspace['p']
 
-#I_120_120 = np.identity(120)
-#G1 = np.vstack((P,I_120_120))
+# #I_120_120 = np.identity(120)
+# #G1 = np.vstack((P,I_120_120))
 
-#H1 = np.hstack((np.identity(8), P))
+# #H1 = np.hstack((np.identity(8), P))
 
-# Check H is a parity matrix for G:
-#assert(np.all(H1.dot(G1) % 2 ==0))
-matrices = scipy.io.loadmat(projectDir + '/bliss_3df_01_220929.mat')
-p = matrices['p']
-h = matrices['h']
-
-
-I_120_120 = np.identity(120)
-I_8_8 = np.identity(8)
-
-G = np.hstack(( p.transpose(), I_120_120))
-
-# This is the parity matrix presented as Canonic in the presentation
-h1 = np.vstack((I_8_8, p.transpose()))
-h1 = h1.transpose()
+# # Check H is a parity matrix for G:
+# #assert(np.all(H1.dot(G1) % 2 ==0))
+# matrices = scipy.io.loadmat(projectDir + '/bliss_3df_01_220929.mat')
+# p = matrices['p']
+# parityMatrixFrom_bliss_3df_01_220929 = matrices['h']
 
 
-sanityCheck = G.dot(h.transpose()) % 2
+# I_120_120 = np.identity(120)
+# I_8_8 = np.identity(8)
+
+# G = np.hstack(( p.transpose(), I_120_120))
+
+# # This is the parity matrix presented as Canonic in the presentation
+# h1 = np.vstack((I_8_8, p.transpose()))
+# h1 = h1.transpose()
+
+
+# sanityCheck = G.dot(parityMatrixFrom_bliss_3df_01_220929.transpose()) % 2
 
 
 #if (np.all(sanityCheck == 0)):
@@ -61,24 +61,27 @@ sanityCheck = G.dot(h.transpose()) % 2
 def bliss_3df_01_220929_syndrom_decoder(H, slicedReceivedMessage):
 
     #S = H.dot(slicedReceivedMessage) %2
-    S = slicedReceivedMessage.dot(H.transpose()) %2
-    print(S)
-    index = np.zeros(8, dtype = BLISS_LOGICAL_DATA_TYPE)
-    index[0] = S[0]
-    index[1] = S[1] 
-    index[2] = S[0] * S[1] + S[2]  %2
-    index[3] = (1 - S[0]) * (1 - S[1]) * S[2] + S[3] %2
-    index[4] = S[0] * (1 - S[1]) * S[2]  + S[4] %2
-    index[5] = (1 - S[0]) * S[1] * S[2] + S[5] %2
-    index[6] = S[0] * S[1] * (1 - S[2]) + S[6] %2
+    S = H.dot(slicedReceivedMessage) %2
+    #S = S[::-1] # Bliss defines S8 to be the top
     
+    print(S)
+    index = np.zeros(8, dtype = IEEE_8023_INT_DATA_TYPE)
+    index[1] = S[1-1]
+    index[2] = S[2-1] 
+    index[3] = ((S[1-1] * S[2-1]) + S[3-1])  %2
+    index[4] = (((1 - S[1-1]) * (1 - S[2-1]) * S[3-1]) + S[4-1]) %2
+    index[5] = (S[1-1] * (1 - S[2-1]) * S[3-1]  + S[5-1]) %2
+    index[6] = ((1 - S[1]) * S[2-1] * S[3-1] + S[6-1]) %2
+    index[7] = S[2-1] * S[2-1] * (((1 - S[3-1]) + S[7-1]) %2)
+    
+    print(index)
     integerIndex = index.dot(INDEX_TO_NUMBER)
     
     correctionVector = np.zeros(slicedReceivedMessage.shape[0], dtype = BLISS_LOGICAL_DATA_TYPE)
     correctionVector[integerIndex] = 1
     
     #Create a corrected message
-    correctedMessage = slicedReceivedMessage + correctionVector %2
+    correctedMessage = (slicedReceivedMessage + correctionVector) %2
     
     #Check if the corrected message is a codeword, if not, report decoder failure.
     decoderFailure = np.all(H.dot(correctedMessage) == 0)

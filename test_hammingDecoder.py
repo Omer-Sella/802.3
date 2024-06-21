@@ -142,10 +142,42 @@ def test_hammingReportFailure():
     #    print(bitsIn)
     #    correctedMessage128, correctionVector128, decoderFailure, syndromes = wiredDecoder(bitsIn)
         #assert(decoderFailure == True)
-        bitsIn[indices] = 0
+    #        bitsIn[indices] = 0
     
 
+def test_bliss_3df_01_220929():
+    #I_120_120 = np.identity(120)
+    #G1 = np.vstack((P,I_120_120))
     
+    #H1 = np.hstack((np.identity(8), P))
+    
+    # Check H is a parity matrix for G:
+    #assert(np.all(H1.dot(G1) % 2 ==0))
+    import scipy
+    import os
+    import sys
+    projectDir = os.environ.get('IEEE8032DJ')
+    #You don't have to define an environment variable, but then you have to give a path to the project here
+    if projectDir == None: 
+         projectDir = "c:/users/omer/802.3/"
+    sys.path.insert(1, projectDir)
+    pathToMatrix = projectDir + '//bliss_3df_01_220929.mat'
+    matrices = scipy.io.loadmat(projectDir + '/bliss_3df_01_220929.mat')
+    p = matrices['p']
+    parityMatrixFrom_bliss_3df_01_220929 = matrices['h']
+    
+    
+    I_120_120 = np.identity(120)
+    I_8_8 = np.identity(8)
+    
+    G = np.hstack(( p.transpose(), I_120_120))
+    
+    # This is the parity matrix presented as Canonic in the presentation
+    h1 = np.vstack((I_8_8, p.transpose()))
+    h1 = h1.transpose()
+    
+    sanityCheck = G.dot(parityMatrixFrom_bliss_3df_01_220929.transpose()) % 2
+    assert(np.all(sanityCheck == 0))
 
 
     
