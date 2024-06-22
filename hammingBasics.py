@@ -62,7 +62,7 @@ def bliss_3df_01_220929_syndrom_decoder(H, slicedReceivedMessage):
 
     #S = H.dot(slicedReceivedMessage) %2
     S = H.dot(slicedReceivedMessage) %2
-    #S = S[::-1] # Bliss defines S8 to be the top
+    S = S[::-1] # Bliss defines S8 to be the top
     
     print(S)
     index = np.zeros(8, dtype = IEEE_8023_INT_DATA_TYPE)
@@ -172,5 +172,61 @@ def hammingWrapper128_68_128(bitsIn):
 def hamming_177_1_using_polynomials():
     #The key here was to find a polynomial that generates table 177_1, and I think it is  x^8 + x^7 + x^6 + x^5 + x^2 + x^1 + 1, except the notation is right to left, i.e.: the leading coefficient is on the right, and the free element (0 or 1 ) is on the left
     pass
-                
 
+def indexToSyndrome(indexArray):
+    i = np.flipud(indexArray)
+    s = np.zeros(8)
+    s[1] = i[1-1]
+    s[2] = i[2-1]
+    s[3] = (i[3-1] + i[1-1]*i[2-1]) %2
+    s[4] = (i[4-1] + ((1+i[1-1])%2)*((1+i[2-1])%2)*(i[3-1] + i[1-1]*i[2-1]))%2
+    s[5] = (i[5-1] +  i[1-1]*((1+i[2-1])%2)*((i[3-1]+i[1-1]*i[2-1])%2) )%2
+    s[6] = (i[6-1] + ((1+i[1-1])%2)*i[2-1]*( (i[3-1]+i[1-1]*i[2-1])%2))%2
+    s[7] = (i[7-1] + i[1-1]*i[2-1]*((1+i[3-1]+i[1-1]*i[2-1])%2))%2
+    return s
+
+def syndromeToIndex(s):
+    i = np.zeros(8)
+    i[1]= s[1] 
+    i[2]= s[2]
+    i[3]= (s[1]*s[2] + s[3])%2
+    i[4]= (((1+s[1])%2)*((1+s[2])%2)*s[3] + s[4])%2
+    i[5]= (s[1]*((1+s[2])%2)*s[3] + s[5])%2
+    i[6]= ( ((1+s[1])%2)*s[2]*s[3] + s[6])%2
+    i[7]= (s[1]*s[2]*((1+s[3])%2) + s[7])%2
+    return i
+
+def generateHammingMatrixFromBlissEquations():
+    """
+        i(1)=S(1) 
+        i(2)=S(2)
+        i(3)=xor(( S(1) & S(2) ), S(3))           = s(1)*s(2) + s(3)
+        i(4)=xor( (~S(1) & ~S(2) & S(3) ), S(4))  = (1+s(1))*(1+s(2))*s(3) + s(4)
+        i(5)=xor( (S(1) & ~S(2) & S(3) ), S(5))   = s(1)*(1+s(2))*s(3) + s(5)
+        i(6)=xor( (~S(1) & S(2) & S(3) ), S(6))   = (1+s(1))*s(2)*s(3) + s(6)
+        i(7)=xor( (S(1) & S(2) & ~S(3) ), S(7))   = s(1)*s(2)*(1+s(3)) + s(7)
+
+        s(1) = i(1)
+        s(2) = i(2)
+        s(3) = i(3) + s(1)*s(2)                     = i(3) + i(1)*i(2)
+        s(4) = i(4) + (1+s(1))*(1+s(2))*s(3)        = i(4) + (1+i(1))*(1+i(2))*(i(3) + i(1)*i(2))
+        s(5) = i(5) + s(1)*(1+s(2))*s(3)            = i(5) + i(1)*(1+i(2))*(i(3)+i(1)*i(2))
+        s(6) = i(6) + (1+s(1))*s(2)*s(3)            = i(6) + (1+i(1))*i(2)*(i(3)+i(1)*i(2))
+        s(7) = i(7) + s(1)*s(2)*(1+s(3))            = i(7) + i(1)*i(2)*(1+i(3)+i(1)*i(2))
+
+
+    """
+    #1. Generate all the numbers from 1 to 128, convert to binary and then to array.
+    #2. Then convert the index array to a syndrome, which is a column in the parity matrix
+    indices = []
+    columns = []
+    for i in np.arange(0,128,1):
+        string = np.binary_repr(i, 8)
+        array = [int(s) for s in string]
+        indices.append(array)
+        column = indexToSyndrome(array)
+        columns.append(column)
+    
+    return indices, np.array(columns)
+    
+    

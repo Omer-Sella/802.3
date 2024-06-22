@@ -6,7 +6,7 @@ Created on Tue Jun 11 17:14:04 2024
 """
 from ieeeConstants import parityMatrix_177_5, g_177_1, IEEE_8023_INT_DATA_TYPE
 from ieee8023dj_d0p1 import encode_177_5
-from hammingBasics import simpleHammingDecoder, hammingWrapper128_68_128
+from hammingBasics import simpleHammingDecoder, hammingWrapper128_68_128, indexToSyndrome, syndromeToIndex
 from chase2 import chase2Decoder
 import numpy as np
 from itertools import combinations
@@ -179,5 +179,10 @@ def test_bliss_3df_01_220929():
     sanityCheck = G.dot(parityMatrixFrom_bliss_3df_01_220929.transpose()) % 2
     assert(np.all(sanityCheck == 0))
 
-
+def test_indexToSyndromeToIndex():
+    for i in np.arange(0,128,1):
+        string = np.binary_repr(i, 8)
+        array = [int(s) for s in string]
+        assert(np.all(np.flipud(syndromeToIndex(indexToSyndrome(array)))[0:7] == array[1:8]))
+        
     
