@@ -38,11 +38,11 @@ def modulatePAM2(vector):
 def precoder(vector):
     # 1/(1+D) modulu 4 precoder - need referece
     vectorPrecoded = np.zeros(len(vector), dtype = IEEE_8023_INT_DATA_TYPE)
-    delay = 0
-    for i in range(len(vector)):
-        vectorPrecoded[i] = (vector[i] + delay) %4
-        delay = vectorPrecoded[i]
+    vectorPrecoded[0] = (vector[0] - vector[1])%4
+    for i in range(1,len(vector)):
+        vectorPrecoded[i] = (vector[i] - vectorPrecoded[i-1]) %4
     return vectorPrecoded
+    
     
 
 def modulatePAM4(vector, grayCoding = True, precoding = False, levels = [ieeeConstants.PAM4_LEVEL_LOW, 

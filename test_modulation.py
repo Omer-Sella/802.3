@@ -5,7 +5,7 @@ Created on Mon Jun 17 13:51:25 2024
 @author: Omer
 """
 
-from modulationFunctions import modulatePAM4, pam4Slice, pam4SymbolsToBits
+from modulationFunctions import modulatePAM4, pam4Slice, pam4SymbolsToBits, precoder
 import numpy as np
 
 def test_pam4Modulation():
@@ -94,3 +94,12 @@ def test_pam4ClassifierOverRandomNumbers(sampleSize = 1000):
     assert(np.all((np.sum(classifier, axis = 0) - 1) < tolerance))
     assert (np.all(classifier >= 0))
     
+def test_precoder():
+    """
+    Precoder test according to the test sequences in parthasarathy_01_0911.pdf
+    """
+    testSequence = np.array([2, 2, 2, 2, 0, 3, 2, 0, 1, 3, 3, 0, 0, 0, 0, 2, 3, 0, 3]) # Taken from the presentation as is
+    desiredOutput = np.array([0, 2, 0, 2, 2, 1, 1, 3, 2, 1, 2, 2, 2, 2, 2, 0, 3, 1, 2]) # Taken from the presentation as is
+    precoderOutput = precoder(testSequence)
+    assert(np.all(precoderOutput == desiredOutput))
+  
