@@ -35,20 +35,25 @@ def modulatePAM2(vector):
     modulatedVector[np.where(vector == 0)] = -1
     return modulatedVector
 
-def precoder(vector):
+def precoder(vector, init = 'default'):
     # 1/(1+D) modulu 4 precoder - need referece
     vectorPrecoded = np.zeros(len(vector), dtype = IEEE_8023_INT_DATA_TYPE)
-    vectorPrecoded[0] = (vector[0] - vector[1])%4
+    if init == 'default':
+        vectorPrecoded[0] = (vector[0] - vector[1])%4
+    else:
+        assert(init == 0 or init == 1 or init == 2 or init == 3)
+        vectorPrecoded[0] = init
     for i in range(1,len(vector)):
         vectorPrecoded[i] = (vector[i] - vectorPrecoded[i-1]) %4
     return vectorPrecoded
     
     
 
-def modulatePAM4(vector, grayCoding = True, precoding = False, levels = [ieeeConstants.PAM4_LEVEL_LOW, 
-                                                                         ieeeConstants.PAM4_LEVEL_MID_LOW, 
-                                                                         ieeeConstants.PAM4_LEVEL_MID_HIGH, 
-                                                                         ieeeConstants.PAM4_LEVEL_HIGH]):
+def modulatePAM4(vector, grayCoding = True, precoding = False, precoderInit = 'default', 
+                 levels = [ieeeConstants.PAM4_LEVEL_LOW,
+                           ieeeConstants.PAM4_LEVEL_MID_LOW, 
+                           ieeeConstants.PAM4_LEVEL_MID_HIGH, 
+                           ieeeConstants.PAM4_LEVEL_HIGH]):
     # 177.4.7.1 of draft 1.0 refers to 120.5.7.1 
     # 120.5.7.1 Gray mapping for PAM4 encoded lanes
     # For output lanes encoded as PAM4 (for 200GBASE-R, where the number of output lanes is 4, or for 
@@ -66,7 +71,7 @@ def modulatePAM4(vector, grayCoding = True, precoding = False, levels = [ieeeCon
         pam4Symbols = 2 * vector[0::2]  +  vector[1::2]
         
     if precoding:
-        pam4SymbolsPrecoded = precoder(pam4Symbols)
+        pam4SymbolsPrecoded = precoder(pam4Symbols, init = precoderInit)
     else:
         pam4SymbolsPrecoded = pam4Symbols
     
