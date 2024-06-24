@@ -5,8 +5,9 @@ Created on Mon Jun 17 13:51:25 2024
 @author: Omer
 """
 
-from modulationFunctions import modulatePAM4, pam4Slice, pam4SymbolsToBits, precoder
+from modulationFunctions import modulatePAM4, pam4ClassifierToBits, pam4Slice, pam4SymbolsToBits, precoder, pam4ClassifierToBits
 import numpy as np
+from ieeeConstants import PAM4_LEVELS
 
 def test_pam4Modulation():
     # From https://www.ieee802.org/3/bj/public/sep12/lusted_3bj_01_0912.pdf slide 25
@@ -93,7 +94,36 @@ def test_pam4ClassifierOverRandomNumbers(sampleSize = 1000):
     tolerance = 0.1
     assert(np.all((np.sum(classifier, axis = 0) - 1) < tolerance))
     assert (np.all(classifier >= 0))
+
+def test_pam4ClassifierToBits(sampleSize = 1):
+    levels = np.array([])
+    modulatedVector = np.random.choice(PAM4_LEVELS, size = sampleSize)
+    pam4SymbolsRx, errorAbsoluteValue, classifier = pam4Slice(modulatedVector)
+    # Safety - the purpose of the test is to create perfect conditions except for one index
+    for i in range(sampleSize):
+        assert(np.sum(classifier[:,i]) == 1)
+        assert(np.count_nonzero(classifier[:,i]) == 1)
     
+    for i in range(sampleSize):
+        testIndex = np.random.randint(0, sampleSize)
+        # This should give 0.5 for 0 and 0.5 for 1 
+        classifier[testIndex,:] = np.array([0.25,0.25,0.25,0.25])
+        bits, probabilities = pam4ClassifierToBits(classifier)
+        assert(probabilities[2 * testIndex] == 0.5)
+        assert(probabilities[2 * testIndex + 1] == 0.5)
+        
+    for i in range(sampleSize):
+        testIndex = np.random.randint(0, sampleSize)
+        # This should give 0.5 for 0 and 0.5 for 1 
+        classifier[testIndex,:] = np.array([0.7,0.1,0.1,0.1])
+        bits, probabilities = pam4ClassifierToBits(classifier)
+        assert(probabilities[2 * testIndex] == 0.8)
+        assert(probabilities[2 * testIndex + 1] == 0.8)
+    
+    
+
+
+
 def test_precoder():
     """
     Precoder test according to the test sequences in parthasarathy_01_0911.pdf

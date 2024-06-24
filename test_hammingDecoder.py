@@ -91,13 +91,16 @@ def test_chase2ZeroDataNoErrorsFullScore():
         return hammingWrapper128_68_128(x)
     zeroCodeword = np.zeros(128, dtype = IEEE_8023_INT_DATA_TYPE)
     scores = np.ones(128, dtype = IEEE_8023_INT_DATA_TYPE)
-    bestVector, decoderFailure, results = chase2Decoder(wiredDecoder, receivedVector = zeroCodeword, scores = scores, numberOfLeastProbable = 2)
+    bestVector, score, decoderFailure, results = chase2Decoder(wiredDecoder, receivedVector = zeroCodeword, scores = scores, numberOfLeastProbable = 2)
+    assert (np.all(bestVector == 0))
+    assert (decoderFailure == False)
     for r in results:
-        print(r)
+        assert (np.all(r[0] == 0))
+        assert (r[2] == False)
         
-def test_chase2ZeroDataOneOrTwoErrorsLabConditions():
+def test_chase2ZeroDataOneErrorLabConditions():
     """
-    The purpose of this test is to check that, if just one or two errors occurs AND they are the lowest scoring bits, 
+    The purpose of this test is to check that, if just one error occurs AND it is the lowest scoring bits, 
     with all others at 100% confidence, chase2 decodes only that single error 
     """
     def wiredDecoder(x):
@@ -106,10 +109,37 @@ def test_chase2ZeroDataOneOrTwoErrorsLabConditions():
     #encodedBinaryData
     zeroCodeword = np.zeros(128, dtype = IEEE_8023_INT_DATA_TYPE)
     scores = np.ones(128, dtype = IEEE_8023_INT_DATA_TYPE)
-    #scores = np.random.uniform(low = 0, high = 1, size = 128) #
-    bestVector, decoderFailure, results = chase2Decoder(wiredDecoder, receivedVector = zeroCodeword, scores = scores, numberOfLeastProbable = 2)
-    for r in results:
-        print(r)
+    for i in range(128):
+        # Flip one bit and set score to 0
+        zeroCodeword[i] = 1 - zeroCodeword[i]
+        scores[i] = 0
+        bestVector, score, decoderFailure, results = chase2Decoder(wiredDecoder, receivedVector = zeroCodeword, scores = scores, numberOfLeastProbable = 2)    
+        assert (np.all(bestVector == 0))
+        assert (decoderFailure == False)
+        # Reset for next testing
+        zeroCodeword[i] = 1 - zeroCodeword[i]
+        scores[i] = 1
+def test_chase2ZeroDataTwoErrorsLabConditions():
+    """
+    The purpose of this test is to check that, if just two errors occured AND it they are the lowest scoring bits, 
+    with all others at 100% confidence, chase2 decodes only those two errors
+    """
+    def wiredDecoder(x):
+        return hammingWrapper128_68_128(x)
+    #binaryData = np.random.randint(0, 2, dtype = IEEE_8023_INT_DATA_TYPE)
+    #encodedBinaryData
+    zeroCodeword = np.zeros(128, dtype = IEEE_8023_INT_DATA_TYPE)
+    scores = np.ones(128, dtype = IEEE_8023_INT_DATA_TYPE)
+    for i in list(combinations(128,2)):
+        # Flip one bit and set score to 0
+        zeroCodeword[list(i)] = 1 - zeroCodeword[list(i)]
+        scores[list(i)] = 0
+        bestVector, score, decoderFailure, results = chase2Decoder(wiredDecoder, receivedVector = zeroCodeword, scores = scores, numberOfLeastProbable = 2)    
+        assert (np.all(bestVector == 0))
+        assert (decoderFailure == False)
+        # Reset for next testing
+        zeroCodeword[list(i)] = 1 - zeroCodeword[list(i)]
+        scores[list(i)] = 1
         
 def test_chase2ZeroDataTwoErrorsFavorableConditions():
     """
@@ -124,9 +154,16 @@ def test_chase2ZeroDataTwoErrorsFavorableConditions():
     zeroCodeword = np.zeros(128, dtype = IEEE_8023_INT_DATA_TYPE)
     scores = np.ones(128, dtype = IEEE_8023_INT_DATA_TYPE)
     #scores = np.random.uniform(low = 0, high = 1, size = 128) #
-    bestVector, decoderFailure, results = chase2Decoder(wiredDecoder, receivedVector = zeroCodeword, scores = scores, numberOfLeastProbable = 2)
-    for r in results:
-        print(r)
+    for i in list(combinations(128,2)):
+        # Flip one bit and set score to 0
+        zeroCodeword[list(i)] = 1 - zeroCodeword[list(i)]
+        scores[list(i)] = np.random.uniform(low = 0, high = 0.8, size = 2)
+        bestVector, score, decoderFailure, results = chase2Decoder(wiredDecoder, receivedVector = zeroCodeword, scores = scores, numberOfLeastProbable = 2)    
+        assert (np.all(bestVector == 0))
+        assert (decoderFailure == False)
+        # Reset for next testing
+        zeroCodeword[list(i)] = 1 - zeroCodeword[list(i)]
+        scores[list(i)] = 1
     
 def test_hammingReportFailure():
     # I need to fix this test, basically testing patterns overwhich hamming should declare failure.
@@ -184,5 +221,15 @@ def test_indexToSyndromeToIndex():
         string = np.binary_repr(i, 8)
         array = [int(s) for s in string]
         assert(np.all(np.flipud(syndromeToIndex(indexToSyndrome(array)))[0:7] == array[1:8]))
-        
-    
+
+
+
+
+def test_hammingWrapper128_68_128ZeroCodeword():
+    data = np.zeros(128, dtype = IEEE_8023_INT_DATA_TYPE)
+    correctedMessage128, correctionVector128, decoderFailure, syndromes = hammingWrapper128_68_128(data)
+    assert (np.all(correctedMessage128 == 0))
+    assert (np.all(correctedMessage128 == data)) # redundant but still ...
+    assert (np.all(correctionVector128 == 0))
+    assert (decoderFailure == False)
+    assert (np.all(syndromes == 0))

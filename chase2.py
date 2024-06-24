@@ -8,6 +8,7 @@ from itertools import combinations, combinations_with_replacement
 import heapq
 import copy
 import numpy as np
+from ieeeConstants import IEEE_8023_INT_DATA_TYPE
 
 def generateTestVectors(template, indices, replacements):
     testVector = copy.copy(template)
@@ -85,5 +86,5 @@ def chase2Decoder(hardDecisionDecoder, receivedVector, scores, numberOfLeastProb
                 bestScore = score
             results.append([testCorrectedMessage, score, testDecoderFailure])
     
-    return bestVector, decoderFailure, results
-    
+    return bestVector, score, decoderFailure, results
+

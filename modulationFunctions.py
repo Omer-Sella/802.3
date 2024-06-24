@@ -16,7 +16,7 @@ sys.path.insert(1, projectDir)
 import numpy as np
 import time
 import ieeeConstants
-from ieeeConstants import IEEE_8023_INT_DATA_TYPE, IEEE_8023_DECIMAL_DATA_TYPE, PAM4_LEVEL_HIGH, PAM4_LEVEL_LOW, PAM4_LEVEL_MID_HIGH, PAM4_LEVEL_MID_LOW
+from ieeeConstants import IEEE_8023_INT_DATA_TYPE, IEEE_8023_DECIMAL_DATA_TYPE, PAM4_GRAYCODED, PAM4_LEVEL_HIGH, PAM4_LEVEL_LOW, PAM4_LEVEL_MID_HIGH, PAM4_LEVEL_MID_LOW, PAM4_NOGRAYCODING, PAM4_GRAYCODED
 
 
 
@@ -155,4 +155,21 @@ def pam4ClassifierToBits(classifier, grayCoded = True):
     There is no need to use pam4SymbolsToBits, because the classifier represents probabilities for ALL pam4 symbols.
     In fact, since the is no control logic (if,else) or list comprehension here, this should be faster than pam4SymbolsToBits.
     """
-    pass
+    
+    if grayCoded:
+        symbolsToBits = PAM4_GRAYCODED
+    else:
+        symbolsToBits = PAM4_NOGRAYCODING
+    
+    msbRepeated = np.tile(symbolsToBits[:,0], (1,classifier.shape[1]))
+    lsbRepeated = np.tile(symbolsToBits[:,1], (1,classifier.shape[1]))
+    
+    probabilityOfReceivingOneMsb = np.sum(msbRepeated * classifier, axis = 0)
+    probabilityOfReceivingOneLsb = np.sum(lsbRepeated * classifier, axis = 0)
+    # each vector is a row vector, so stack them MSB on top of LSB, and then flatten it using Fortran ordering, i.e.: column first, so stack[0,0], stack[0,1], stack[1,0], stack[1,1] ...
+    probabilityOfReceivingOne = np.vstack((probabilityOfReceivingOneMsb, probabilityOfReceivingOneLsb)).ravel(order = 'F')
+    
+    bits = pam4SymbolsToBits(np.argmax(clasifier, axis = 0), grayCoded = grayCoded)
+    probabilities = np.where(bits == 1, [probabilityOfReceivingOne, 1 - probabilityOfReceivingOne])
+    
+    return bits, probabilities

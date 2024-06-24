@@ -124,20 +124,21 @@ def hammingWrapper128_68_128(bitsIn):
     xored = np.zeros(68, dtype = IEEE_8023_INT_DATA_TYPE)
     xored[0:60] =  [(bitsIn[2*k] + bitsIn[2 * k + 1]) %2 for k in range(60) ]
     xored[60:68] =  bitsIn[120:128]
-    correctedMessage128 = np.ones(128, IEEE_8023_INT_DATA_TYPE)
+    correctedMessage128 = np.zeros(128, IEEE_8023_INT_DATA_TYPE)
     correctionVector128 = np.zeros(128, IEEE_8023_INT_DATA_TYPE)
     correctedMessage, correctionVector, decoderFailure, syndromes = hammingDecoder68BitFunction(xored)
-    print(xored)
+    #print(xored)
     #print(correctedMessage)
     #print(correctionVector)
-    print(decoderFailure)
-    print(syndromes)
+    #print(decoderFailure)
+    #print(syndromes)
     # Now we need to reverse engineer which of the original bits the hamming-corrected-bit corresponds to.
     # We do this in a very simple minded way - try to correct both, and see which one comes back as a valid codeword:
     if not decoderFailure and not (np.all(syndromes == 0)): #I.e.: Hamming thinks there is (up to) one error and it found it, meaning the correctionVector is one hot or all zero
-        print(correctionVector)    
+        #print(correctionVector)    
         assert(np.sum(correctionVector) == 1) # Safety - remove when you think everything works. I need to add a test for this.
         oneHotIndex = np.where(correctionVector == 1)[0]
+        print(oneHotIndex)
         if oneHotIndex >= 60:
             correctionVector128 = np.zeros(128, IEEE_8023_INT_DATA_TYPE) 
             correctionVector128[oneHotIndex] = 1

@@ -31,6 +31,13 @@ PAM4_LEVEL_MID_LOW = -(1/3)
 PAM4_LEVEL_MID_HIGH = 1/3
 PAM4_LEVEL_HIGH = 1
 
+PAM4_LEVELS = np.array([PAM4_LEVEL_LOW, PAM4_LEVEL_MID_LOW, PAM4_LEVEL_MID_HIGH, PAM4_LEVEL_HIGH])
+
+PAM4_GRAYCODED = np.array([[0,0],[0,1],[1,1],[1,0]])
+PAM4_NOGRAYCODING = np.array([[0,0],[0,1],[1,0],[1,1]])
+                          
+              
+
 g_177_1 = np.array(
   #Table 177–1—Generation matrix for Hamming(68,60)
  [
