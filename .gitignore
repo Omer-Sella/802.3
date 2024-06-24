@@ -1,0 +1,7 @@
+*TestResults*
+./TestResults
+./test
+./.pytest_cahce
+./__pycache__
+./.vs
+.vs
