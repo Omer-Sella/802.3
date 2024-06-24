@@ -102,6 +102,7 @@ def test_pam4ClassifierToBits(sampleSize = 1):
     # Safety - the purpose of the test is to create perfect conditions except for one index
     for i in range(sampleSize):
         assert(np.sum(classifier[:,i]) == 1)
+        print(np.count_nonzero(classifier[:,i]))
         assert(np.count_nonzero(classifier[:,i]) == 1)
     
     for i in range(sampleSize):
@@ -120,8 +121,6 @@ def test_pam4ClassifierToBits(sampleSize = 1):
         assert(probabilities[2 * testIndex] == 0.8)
         assert(probabilities[2 * testIndex + 1] == 0.8)
     
-    
-
 
 
 def test_precoder():

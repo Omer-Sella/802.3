@@ -1,6 +1,7 @@
 {
   "ExpandedNodes": [
-    ""
+    "",
+    "\\__pycache__"
   ],
   "SelectedNode": "\\test_modulation.py",
   "PreviewInSolutionExplorer": false
