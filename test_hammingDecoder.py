@@ -130,7 +130,7 @@ def test_chase2ZeroDataTwoErrorsLabConditions():
     #encodedBinaryData
     zeroCodeword = np.zeros(128, dtype = IEEE_8023_INT_DATA_TYPE)
     scores = np.ones(128, dtype = IEEE_8023_INT_DATA_TYPE)
-    for i in list(combinations(128,2)):
+    for i in list(combinations(range(128),2)):
         # Flip one bit and set score to 0
         zeroCodeword[list(i)] = 1 - zeroCodeword[list(i)]
         scores[list(i)] = 0
@@ -154,7 +154,7 @@ def test_chase2ZeroDataTwoErrorsFavorableConditions():
     zeroCodeword = np.zeros(128, dtype = IEEE_8023_INT_DATA_TYPE)
     scores = np.ones(128, dtype = IEEE_8023_INT_DATA_TYPE)
     #scores = np.random.uniform(low = 0, high = 1, size = 128) #
-    for i in list(combinations(128,2)):
+    for i in list(combinations(range(128),2)):
         # Flip one bit and set score to 0
         zeroCodeword[list(i)] = 1 - zeroCodeword[list(i)]
         scores[list(i)] = np.random.uniform(low = 0, high = 0.8, size = 2)
