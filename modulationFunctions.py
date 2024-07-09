@@ -16,7 +16,7 @@ sys.path.insert(1, projectDir)
 import numpy as np
 import time
 import ieeeConstants
-from ieeeConstants import IEEE_8023_INT_DATA_TYPE, IEEE_8023_DECIMAL_DATA_TYPE, PAM4_GRAYCODED, PAM4_LEVEL_HIGH, PAM4_LEVEL_LOW, PAM4_LEVEL_MID_HIGH, PAM4_LEVEL_MID_LOW, PAM4_NOGRAYCODING, PAM4_GRAYCODED
+from ieeeConstants import IEEE_8023_INT_DATA_TYPE, IEEE_8023_DECIMAL_DATA_TYPE, PAM4_GRAYCODED, PAM4_LEVEL_HIGH, PAM4_LEVEL_LOW, PAM4_LEVEL_MID_HIGH, PAM4_LEVEL_MID_LOW, PAM4_NOGRAYCODING, PAM4_GRAYCODED, PAM4_LEVELS
 
 
 
@@ -84,6 +84,9 @@ def modulatePAM4(vector, grayCoding = True, precoding = False, precoderInit = 'd
     return modulatedVector, pam4Symbols, pam4SymbolsPrecoded
 
 def pam4Slicer(vector, greyCoded = True):
+    """
+    Deprecated !
+    """
     pam4Symbols = np.zeros((vector.shape[0]), dtype = IEEE_8023_INT_DATA_TYPE)
     bitsDemodulated = np.zeros((2 * vector.shape[0]), dtype = IEEE_8023_INT_DATA_TYPE)
     if greyCoded == True:
@@ -123,14 +126,35 @@ def pam4Quantize(signal, effectiveNumberOfBits = 6, high = ieeeConstants.PAM4_LE
     quantizedSignal = q * np.floor(signal/q)
     return quantizedSignal
     
-def pam4Slice(signal, reference = np.array([PAM4_LEVEL_LOW, PAM4_LEVEL_MID_LOW, PAM4_LEVEL_MID_HIGH, PAM4_LEVEL_HIGH])):
+
+
+
+def pam4Slice(signal, reference = PAM4_LEVELS):#np.array([PAM4_LEVEL_LOW, PAM4_LEVEL_MID_LOW, PAM4_LEVEL_MID_HIGH, PAM4_LEVEL_HIGH])):
     """
     Input signal of type np array of real numbers assumed to be a 1 dimensional column vector - no safety
     """
     referenceRepeated = np.tile(reference[:,np.newaxis], (1,len(signal)))
     signalRepeated = np.tile(signal, (len(reference),1))
     g = lambda x: np.exp(-1*np.abs(x))
-    classifier =  g(signalRepeated - referenceRepeated) / np.sum( g(signalRepeated - referenceRepeated), axis = 0)
+    f = lambda x: 1/ np.abs(x)
+    h = lambda x: 2 ** (-1 * np.abs(x))
+    def taperedTriangle(x, base = 4/3, epsilon = 0):
+        """
+        If x is out of bounds (less than or greater than base/2) return 0
+        If within base bounds, return 1 if within epsilon bounds, and otherwise 
+        a (piecewise) linear function of x that depends on base and epsilon 
+        """
+        ans = np.zeros(x.shape)
+        # The result is part of two things: if x< base/2 or x>base/2 then 0, otherwise, 
+        ans = np.where( (np.abs(x) > (base/2)), 0, 
+                       np.where(np.abs(x) < epsilon/2, 1, 
+                                np.where(x < epsilon/2 , ((base/2) + x) / (base/2 - epsilon/2), ((base/2) - x) / (base/2 - epsilon/2))))
+        return ans
+    
+    classifier =  taperedTriangle(signalRepeated - referenceRepeated) #/ np.sum( g(signalRepeated - referenceRepeated), axis = 0)
+    # Reassignment of probability to be 1 if the reference signal is strictly higher or lower than pam4 highest or lowest correspondigly.
+    classifier[3,:] = np.where(signalRepeated[3,:] > PAM4_LEVEL_HIGH, 1, classifier[3,:])
+    classifier[0,:] = np.where(signalRepeated[0,:] < PAM4_LEVEL_LOW, 1, classifier[0,:])
     # the result of np.argmin(np.abs(signalRepeated - referenceRepeated), axis = 0) is a vector with values 0,1,2,3 depending on the ordering of the reference levels - no safety, the user needs to think how they order the reference so that the PAM4 slicing will be correct
     pam4Symbols = np.argmin(np.abs(signalRepeated - referenceRepeated), axis = 0)
     errorAbsoluteValue = np.min(np.abs(signalRepeated - referenceRepeated), axis = 0)
@@ -160,16 +184,13 @@ def pam4ClassifierToBits(classifier, grayCoded = True):
         symbolsToBits = PAM4_GRAYCODED
     else:
         symbolsToBits = PAM4_NOGRAYCODING
-    
-    msbRepeated = np.tile(symbolsToBits[:,0], (1,classifier.shape[1]))
-    lsbRepeated = np.tile(symbolsToBits[:,1], (1,classifier.shape[1]))
-    
+    msbRepeated = np.tile(np.expand_dims(symbolsToBits[:,0], axis = 1), (1,classifier.shape[1]))
+    lsbRepeated = np.tile(np.expand_dims(symbolsToBits[:,1], axis = 1), (1,classifier.shape[1]))
     probabilityOfReceivingOneMsb = np.sum(msbRepeated * classifier, axis = 0)
     probabilityOfReceivingOneLsb = np.sum(lsbRepeated * classifier, axis = 0)
     # each vector is a row vector, so stack them MSB on top of LSB, and then flatten it using Fortran ordering, i.e.: column first, so stack[0,0], stack[0,1], stack[1,0], stack[1,1] ...
     probabilityOfReceivingOne = np.vstack((probabilityOfReceivingOneMsb, probabilityOfReceivingOneLsb)).ravel(order = 'F')
-    
-    bits = pam4SymbolsToBits(np.argmax(clasifier, axis = 0), grayCoded = grayCoded)
-    probabilities = np.where(bits == 1, [probabilityOfReceivingOne, 1 - probabilityOfReceivingOne])
+    bits = pam4SymbolsToBits(np.argmax(classifier, axis = 0), grayCoded = grayCoded)
+    probabilities = np.where(bits == 1, probabilityOfReceivingOne, 1 - probabilityOfReceivingOne)
     
     return bits, probabilities

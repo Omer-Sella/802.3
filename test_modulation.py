@@ -78,7 +78,7 @@ def test_pam4ClassifierOverData():
     modulatedVector, pam4SymbolsTx, pam4SymbolsPrecoded = modulatePAM4(bitsTx, grayCoding = False, precoding = False)
     pam4SymbolsRx, errorAbsoluteValue, classifier = pam4Slice(modulatedVector)
     assert(np.all(pam4SymbolsRx == np.argmax(classifier, axis = 0)))
-    tolerance = 0.1
+    tolerance = 0.01
     assert(np.all( (np.sum(classifier, axis = 0) - 1) < tolerance) )
     assert (np.all(classifier >= 0))
     
@@ -87,7 +87,6 @@ def test_pam4ClassifierOverRandomNumbers(sampleSize = 1000):
     # argmax over axis==0 should give the pam4 symbol
     # the sum over axis=0 (so vertically, i.e. the sum of 4 possibilities) == 1
     # all elements are >= 0
-    
     modulatedVector = np.random.uniform(low = -3, high = 3, size = sampleSize)
     pam4SymbolsRx, errorAbsoluteValue, classifier = pam4Slice(modulatedVector)
     assert(np.all(pam4SymbolsRx == np.argmax(classifier, axis = 0)))
@@ -95,20 +94,27 @@ def test_pam4ClassifierOverRandomNumbers(sampleSize = 1000):
     assert(np.all((np.sum(classifier, axis = 0) - 1) < tolerance))
     assert (np.all(classifier >= 0))
 
-def test_pam4ClassifierToBits(sampleSize = 1):
-    levels = np.array([])
+def test_pam4ClassifierProbabilityDistribution(sampleSize = 100):
+    """
+    This is  asimple sanity check that:
+        1. The classifier is a probability distribution (when looked at column wise)
+        2. If there is no noise, the classifier should point to exactly one symbol      
+    
+    """
     modulatedVector = np.random.choice(PAM4_LEVELS, size = sampleSize)
     pam4SymbolsRx, errorAbsoluteValue, classifier = pam4Slice(modulatedVector)
     # Safety - the purpose of the test is to create perfect conditions except for one index
     for i in range(sampleSize):
         assert(np.sum(classifier[:,i]) == 1)
-        print(np.count_nonzero(classifier[:,i]))
         assert(np.count_nonzero(classifier[:,i]) == 1)
-    
+
+def test_pam4ClassifierToBits(sampleSize = 100):
+    modulatedVector = np.random.choice(PAM4_LEVELS, size = sampleSize)
+    pam4SymbolsRx, errorAbsoluteValue, classifier = pam4Slice(modulatedVector)
     for i in range(sampleSize):
         testIndex = np.random.randint(0, sampleSize)
         # This should give 0.5 for 0 and 0.5 for 1 
-        classifier[testIndex,:] = np.array([0.25,0.25,0.25,0.25])
+        classifier[:, testIndex] = np.array([0.25,0.25,0.25,0.25])
         bits, probabilities = pam4ClassifierToBits(classifier)
         assert(probabilities[2 * testIndex] == 0.5)
         assert(probabilities[2 * testIndex + 1] == 0.5)
@@ -116,7 +122,7 @@ def test_pam4ClassifierToBits(sampleSize = 1):
     for i in range(sampleSize):
         testIndex = np.random.randint(0, sampleSize)
         # This should give 0.5 for 0 and 0.5 for 1 
-        classifier[testIndex,:] = np.array([0.7,0.1,0.1,0.1])
+        classifier[:, testIndex] = np.array([0.7,0.1,0.1,0.1])
         bits, probabilities = pam4ClassifierToBits(classifier)
         assert(probabilities[2 * testIndex] == 0.8)
         assert(probabilities[2 * testIndex + 1] == 0.8)
