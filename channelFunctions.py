@@ -23,7 +23,7 @@ sys.path.insert(1, projectDir)
 def additiveWhiteGaussianNoise(vector, length, SNRdb, prng, d = 0.5):
     
     """
-    The problem is this: I am passing SNRdb as a number, and wish to extract sigma.
+    Problem: I am passing SNRdb as a number, and wish to extract sigma.
     However, the formulas for SNR for PAM2 and for SNR for PAM4 are different.
     In PAM2 SNR == EbN0 (Energy pre bit / N0), and in PAM4 the average energy per bit (!) is different (continue in Proakis page 268)
     """

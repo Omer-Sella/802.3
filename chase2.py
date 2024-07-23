@@ -58,6 +58,7 @@ def chase2Decoder(hardDecisionDecoder, receivedVector, scores, numberOfLeastProb
     # WITHOUT replacing the lesser ones. It's an implementation choice that should 
     # be measured
     testIndices = combinations_with_replacement(indices, numberOfLeastProbable)
+    score = 0
     bestScore = 0
     bestVector = np.array([])
     decoderFailure = True
