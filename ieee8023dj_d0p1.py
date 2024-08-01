@@ -6,6 +6,7 @@ Created on Thu Feb  8 09:44:44 2024
 """
 import numpy as np
 from ieeeConstants import *
+from ieeeConstants import g_177_1_includingXor
 def encode_177_5(G, M):
     
     # The encode process is illustrated in Figure 177–5. Starting from the first message bit, each pair of bits that 
@@ -20,6 +21,24 @@ def encode_177_5(G, M):
     codeword = np.hstack(( M_xor, M_parity))
     return codeword
 
+def encode_177_5_linear(M):
+    """
+    Pure matrix multiplication implementation.
+    
+    Parameters
+    ----------
+    G : 60,68 generator matrix
+    M : Two dimensional array of size K X 120 for some K
+
+    Returns
+    -------
+    codewords: Two dimension array of size K X68 for the same K. 
+    Each row is a codeword, indistinguishable from using encode_177_5
+
+    """
+    
+    return (M.dot(g_177_1_includingXor) %2)
+    
 
 
 

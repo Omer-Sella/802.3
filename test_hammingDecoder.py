@@ -233,3 +233,4 @@ def test_hammingWrapper128_68_128ZeroCodeword():
     assert (np.all(correctionVector128 == 0))
     assert (decoderFailure == False)
     assert (np.all(syndromes == 0))
+    

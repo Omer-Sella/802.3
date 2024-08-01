@@ -58,17 +58,17 @@ def chase2Decoder(hardDecisionDecoder, receivedVector, scores, numberOfLeastProb
     # WITHOUT replacing the lesser ones. It's an implementation choice that should 
     # be measured
     testIndices = combinations_with_replacement(indices, numberOfLeastProbable)
-    score = 0
+    #score = 0
     bestScore = 0
     bestVector = np.array([])
     decoderFailure = True
     results = []
+    score = np.sum(scores)
     initialScore = np.sum(scores)
     for t in testIndices:
         tAsList = list(t)
         newTestVector = copy.deepcopy(receivedVector)
         newTestVector[tAsList] = 1 - receivedVector[tAsList]
-        # Change the total score of the testVector, this is just book keeping for later
         testCorrectedMessage, testCorrectionVector, testDecoderFailure, testSyndromes = hardDecisionDecoder(newTestVector)
         if testDecoderFailure == False:
             # At least one test vector managed to get through

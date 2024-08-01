@@ -112,18 +112,27 @@ def simpleHammingDecoder(H, slicedReceivedMessage):
     correctedMessage = (slicedReceivedMessage + correctionVector) %2
     return  correctedMessage, correctionVector, decoderFailure, syndrome
 
+def bitsXOR128_68(bitsIn):
+    xored = np.zeros(68, dtype = IEEE_8023_INT_DATA_TYPE)
+    xored[0:60] =  [(bitsIn[2*k] + bitsIn[2 * k + 1]) %2 for k in range(60) ]
+    xored[60:68] =  bitsIn[120:128]
+    return xored
+
+def twoDimensionalXOR128_68(bitsIn):
+    """
+    bitsIn is assumed to be 
+    """
+
 def hammingWrapper128_68_128(bitsIn):
     """
-    This function XORs bit pairs from 0 to 120, and leaves rightmost 8 bits untouched, then applies Hamming
-    hammingDecoder68BitFunction is assumed to be a Hamming decoder, already set to some parity matrix H
-    
+    This function leverages a (single bit) hard hamming decoder based on a 68,60 code.
+    First XOR bit pairs from 0 to 120, leavig rightmost 8 bits untouched, then applies a Hamming
+    68,60 decoder.
     If the decoding succeeds, the result has to be run again through the decoder, since we need to figure out which of the bits from the xored bit-pairs was flipped
     """
     def hammingDecoder68BitFunction(x):
         return simpleHammingDecoder(parityMatrix_177_5, x)
-    xored = np.zeros(68, dtype = IEEE_8023_INT_DATA_TYPE)
-    xored[0:60] =  [(bitsIn[2*k] + bitsIn[2 * k + 1]) %2 for k in range(60) ]
-    xored[60:68] =  bitsIn[120:128]
+    xored = bitsXOR128_68(bitsIn)
     correctedMessage128 = np.zeros(128, IEEE_8023_INT_DATA_TYPE)
     correctionVector128 = np.zeros(128, IEEE_8023_INT_DATA_TYPE)
     correctedMessage, correctionVector, decoderFailure, syndromes = hammingDecoder68BitFunction(xored)
@@ -138,7 +147,6 @@ def hammingWrapper128_68_128(bitsIn):
         #print(correctionVector)    
         assert(np.sum(correctionVector) == 1) # Safety - remove when you think everything works. I need to add a test for this.
         oneHotIndex = np.where(correctionVector == 1)[0]
-        print(oneHotIndex)
         if oneHotIndex >= 60:
             correctionVector128 = np.zeros(128, IEEE_8023_INT_DATA_TYPE) 
             correctionVector128[oneHotIndex] = 1
@@ -153,7 +161,7 @@ def hammingWrapper128_68_128(bitsIn):
             xored[60:68] =  correctedVector128[120:128]
             correctedMessage0, correctionVector0, decoderFailure0, syndromes0 = hammingDecoder68BitFunction(xored)
             if not decoderFailure0 and np.all(syndromes0 == 0):
-                assert(np.all(correctedMessage0 == correctedMessage))
+                assert(np.all(correctedMessage0 == correctedMessage)) #This is just a sanity check for myself and should be removed. I'm checking that my assumption that exactly one bit out of the bit pair has to be flipped.
                 correctedMessage128 = correctedVector128
             else:
                 #It must be the other option, i.e. 2*oneHotIndex + 1

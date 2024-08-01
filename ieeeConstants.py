@@ -195,3 +195,25 @@ berPam4Hamming_127_120 = np.array([1.2435e-01, 1.2000e-01, 1.1568e-01, 1.1139e-0
 stringValuePRBS9Q_seed111111111_clause_120_5_11_2_a = "0012322303231310010331213302202231320111030230213332303130303000100302003120333200212331323101100332102221310311322203133313130002013110133112221011302332032022012212100133213232001133223333300110332203232300120233102211211010301312003221320210023220022223"
 stringValuePRBS9Q_seed111111111_clause_120_5_11_2_a += "002212201120203003110232101231220213033310120132111201020101000030101301023111130132210212030330111331223203103212231021102020001302033021032223303201211311312302232330021132121300321122111100033111231121200023121031233233303100202301123213133012123012222"
 PRBS9Q_seed111111111_clause_120_5_11_2_a = [int(i) for i in list(stringValuePRBS9Q_seed111111111_clause_120_5_11_2_a)]
+
+
+def generateXorMatrix():
+    """
+    generate a matrix M such that, for a binary vector v,
+    v.dot(M) %2 produces the bitwise xor of bitpairs from v, i.e.:
+        v[0] xor v[1], v[2] xor v[3] etc.
+    """
+    M = np.zeros((120,60))
+    xorVector = np.zeros(120)
+    xorVector[0]=1
+    xorVector[1]=1
+    for i in range(60):
+        M[:,i] = xorVector
+        xorVector = np.roll(xorVector, 2)
+    return M
+
+xorMatrix_120_60 = generateXorMatrix()
+
+g_177_1_withIdentity = np.hstack((np.eye(60), g_177_1)) # g_177_1 extended by the identity matrix to allow encoding in one line.
+
+g_177_1_includingXor = xorMatrix_120_60.dot(g_177_1_withIdentity) %2

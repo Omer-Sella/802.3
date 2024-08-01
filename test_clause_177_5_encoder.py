@@ -15,7 +15,7 @@ currentPath = os.getcwd()
 sys.path.insert(1, currentPath)
 import numpy as np
 from ieeeConstants import tv1_parity, tv1_tp4, generatorMatrix_177_5
-from ieee8023dj_d0p1 import encode_177_5,  g_177_1
+from ieee8023dj_d0p1 import encode_177_5,  g_177_1, encode_177_5_linear
 def test_encode_177_5_tv_1():
     tv1Encoded = encode_177_5(G = g_177_1, M = tv1_tp4)
     assert np.all(tv1Encoded[60:68] == tv1_parity)
@@ -33,3 +33,13 @@ def test_bchEncoder():
 #    cw, mxor = encode_177_5(generatorMatrix_177_5, tv1_tp4)
 #    cw2 = encodeUsingMatrixOnly(generatorMatrix_177_5, mxor[1,0:60].transpose())
 #    return np.all(cw2 == mxor[1,:].transpose())
+
+def test_oneMatrixEncoder():
+    someInteger = np.random.randint(1,100)
+    data = np.random.randint(0,2,(someInteger, 120))
+    encoded = np.zeros((someInteger, 68))
+    encodedUsingMatrixMultiplication = encode_177_5_linear(data)
+    for i in range(someInteger):
+        encoded[i,:] = encode_177_5(G = g_177_1, M = data[i,:])
+    assert (np.all(encoded ==  encodedUsingMatrixMultiplication))
+        
